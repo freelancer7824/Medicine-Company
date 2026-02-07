@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onyx Pharma | Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root { --primary: #f85606; --bg: #f4f4f7; --text: #1a1a1a; }
+        * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .login-box { background: white; padding: 40px 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 95%; max-width: 380px; text-align: center; }
+        h2 { color: var(--text); margin-bottom: 25px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; outline: none; }
+        .btn-login { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; background: var(--primary); color: white; font-size: 16px; transition: 0.3s; }
+        .btn-login:hover { background: #d44905; }
+        .error-msg { color: red; font-size: 13px; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="login-box">
+        <i class="fas fa-lock" style="font-size: 40px; color: var(--primary); margin-bottom: 15px;"></i>
+        <h2>User Login</h2>
+        <input type="email" id="userEmail" placeholder="Enter Authorized Gmail">
+        <input type="password" id="userPass" placeholder="Password">
+        <button class="btn-login" id="loginBtn">Login Now</button>
+        <p id="errorMessage" class="error-msg">Unauthorized Access!</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+            authDomain: "social-media-5e6c8.firebaseapp.com",
+            databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+            projectId: "social-media-5e6c8",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+
+        const loginBtn = document.getElementById('loginBtn');
+        const errorMsg = document.getElementById('errorMessage');
+
+        loginBtn.onclick = async () => {
+            const email = document.getElementById('userEmail').value;
+            const pass = document.getElementById('userPass').value;
+            
+            errorMsg.style.display = "none";
+            loginBtn.innerText = "Verifying...";
+            loginBtn.disabled = true;
+
+            try {
+                // 1. Firebase Auth দিয়ে লগইন চেষ্টা
+                const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+                const user = userCredential.user;
+
+                // 2. ডাটাবেজ থেকে অনুমোদিত ইমেইল চেক করা
+                const adminRef = ref(db, 'adminSettings/allowedEmail');
+                const snapshot = await get(adminRef);
+                const allowedEmail = snapshot.val();
+
+                if (user.email === allowedEmail) {
+                    // ইমেইল মিলে গেলে account.html এ পাঠিয়ে দিবে
+                    window.location.href = "account.html";
+                } else {
+                    // ইমেইল না মিললে লগআউট করে দিবে
+                    await signOut(auth);
+                    showError("You are not authorized to access this page!");
+                }
+
+            } catch (error) {
+                showError("Invalid Email or Password!");
+                console.error(error);
+            } finally {
+                loginBtn.innerText = "Login Now";
+                loginBtn.disabled = false;
+            }
+        };
+
+        function showError(msg) {
+            errorMsg.innerText = msg;
+            errorMsg.style.display = "block";
+        }
+    </script>
+</body>
+</html>
