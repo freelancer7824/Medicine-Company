@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onyx Pharma | Your Trusted Healthcare Partner</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #f85606;
+            --primary-dark: #d34a05;
+            --bg: #f4f4f7;
+            --white: #ffffff;
+            --text-dark: #1a1a1a;
+            --text-light: #757575;
+            --whatsapp: #25d366;
+            --shadow: 0 4px 15px rgba(0,0,0,0.05);
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        body { background: var(--bg); color: var(--text-dark); -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+
+        header { background: var(--white); position: sticky; top: 0; z-index: 1000; box-shadow: var(--shadow); }
+        .top-nav { padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; max-width: 1300px; margin: 0 auto; }
+        .logo { font-size: 26px; font-weight: 800; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+        .nav-buttons { display: flex; gap: 10px; }
+        .btn { padding: 8px 18px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 600; transition: 0.3s; display: flex; align-items: center; gap: 6px; border: none; cursor: pointer; }
+        .whatsapp-btn { background: #e8f9ee; color: var(--whatsapp); }
+        .login-btn { background: var(--text-dark); color: white; display: none; }
+
+        .search-container { padding: 15px 5%; background: var(--white); border-top: 1px solid #eee; }
+        .search-box { max-width: 800px; margin: 0 auto; position: relative; display: flex; align-items: center; }
+        .search-box input { width: 100%; padding: 14px 20px; border: 2px solid #f0f0f0; border-radius: 50px; outline: none; background: #f8f8f8; font-size: 15px; }
+        .search-box input:focus { border-color: var(--primary); background: white; }
+        .search-btn { position: absolute; right: 5px; background: var(--primary); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; }
+
+        .hero { max-width: 1300px; margin: 25px auto; padding: 0 5%; }
+        .banner-card { background: linear-gradient(135deg, #f85606 0%, #ff8c52 100%); border-radius: 20px; padding: 40px; color: white; position: relative; overflow: hidden; }
+        .hero-text h1 { font-size: clamp(24px, 5vw, 42px); font-weight: 800; line-height: 1.1; margin-bottom: 15px; }
+
+        .main-content { max-width: 1300px; margin: 0 auto; padding: 0 5% 60px; }
+        .section-header { margin: 30px 0 20px; }
+        .section-header h3 { font-size: 22px; font-weight: 800; border-left: 5px solid var(--primary); padding-left: 15px; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+
+        .card { background: var(--white); border-radius: var(--radius); padding: 15px; transition: 0.3s; border: 1px solid transparent; display: flex; flex-direction: column; position: relative; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); border-color: var(--primary); }
+        .card-img { height: 130px; background: #f9f9f9; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #ddd; margin-bottom: 12px; }
+        
+        .stock-badge { position: absolute; top: 10px; right: 10px; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+        .in-stock { background: #e8f9ee; color: #25d366; }
+        .out-stock { background: #fee2e2; color: #ef4444; }
+
+        .card-title { font-size: 15px; font-weight: 600; height: 42px; overflow: hidden; margin-bottom: 8px; }
+        .card-info { font-size: 12px; color: var(--text-light); margin-bottom: 4px; display: flex; justify-content: space-between; }
+        .card-price { font-size: 20px; font-weight: 800; color: var(--primary); margin: 8px 0; }
+        
+        .order-now-btn { background: var(--text-dark); color: white; width: 100%; padding: 10px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; transition: 0.3s; margin-top: auto; }
+        .order-now-btn:hover:not(:disabled) { background: var(--primary); }
+        .order-now-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
+        .modal { background: white; padding: 25px; border-radius: 20px; width: 95%; max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative; }
+        .modal h3 { margin-bottom: 15px; font-weight: 800; color: var(--primary); }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .full-w { grid-column: span 2; }
+        .modal input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none; font-size: 14px; }
+        .confirm-order-btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 15px; }
+        .close-modal { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 20px; color: #999; }
+
+        footer { background: #1a1a1a; color: #999; padding: 60px 5% 30px; margin-top: 40px; }
+        .footer-grid { max-width: 1300px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; }
+        .bottom-footer { text-align: center; padding-top: 25px; border-top: 1px solid #333; margin-top: 40px; font-size: 13px; }
+
+        @media (max-width: 768px) {
+            .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .btn span { display: none; }
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;"> <header>
+        <nav class="top-nav">
+            <a href="#" class="logo"><i class="fa-solid fa-droplet"></i><span>ONYX PHARMA</span></a>
+            <div class="nav-buttons">
+                <a href="#" id="wa_link" target="_blank" class="btn whatsapp-btn"><i class="fa-brands fa-whatsapp"></i><span>WhatsApp</span></a>
+                <a href="login.html" id="loginBtn" class="btn login-btn"><i class="fa-solid fa-user-lock"></i><span>Login</span></a>
+            </div>
+        </nav>
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="mainSearch" placeholder="Search for medicines...">
+                <button class="search-btn"><i class="fa fa-search"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="banner-card">
+            <div class="hero-text">
+                <h1>Health Care <br> Delivered to You.</h1>
+                <p>Authentic Medicines | 24/7 Service</p>
+            </div>
+        </div>
+    </section>
+
+    <main class="main-content">
+        <div class="section-header"><h3>Available Medicines</h3></div>
+        <div class="product-grid" id="productStore"></div>
+    </main>
+
+    <div class="modal-overlay" id="orderModal">
+        <div class="modal">
+            <i class="fa fa-times close-modal" id="closeModal"></i>
+            <h3>Order Details</h3>
+            <p id="targetItem" style="margin-bottom: 15px; font-weight: 700; color: var(--primary); background: #fff5f0; padding: 10px; border-radius: 8px;"></p>
+            <div class="form-grid">
+                <input type="text" id="userName" placeholder="Full Name" class="full-w">
+                <input type="text" id="userDistrict" placeholder="District">
+                <input type="text" id="userUpazila" placeholder="Upazila">
+                <input type="text" id="userVillage" placeholder="Village / Town Name" class="full-w">
+                <input type="number" id="userQty" placeholder="How many pieces?" min="1" value="1">
+                <input type="text" id="userPhone" placeholder="Contact Number">
+            </div>
+            <button class="confirm-order-btn" id="submitOrder">Confirm Order (Cash on Delivery)</button>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4 style="color: white">ONYX PHARMA</h4>
+                <p>Providing 100% authentic medicine at your doorstep.</p>
+            </div>
+            <div class="footer-col">
+                <h4 style="color: white">Contact Us</h4>
+                <p id="f_address">...</p>
+                <p id="f_phone">...</p>
+                <p id="f_email">...</p>
+            </div>
+        </div>
+        <div class="bottom-footer">&copy; 2026 Onyx Pharma. All Rights Reserved.</div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, push, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // Security: Prevent Keyboard Inspect Shortcuts
+        document.onkeydown = (e) => {
+            if (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 73 || e.keyCode === 74 || e.shiftKey && e.keyCode === 73)) return false;
+        };
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+            authDomain: "social-media-5e6c8.firebaseapp.com",
+            databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+            projectId: "social-media-5e6c8",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+
+        // Admin-Controlled Auth & Auto Logout Logic
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Listen to adminEmail in real-time
+                onValue(ref(db, 'adminSettings/allowedEmail'), (snapshot) => {
+                    const allowedEmail = snapshot.val();
+                    if (user.email !== allowedEmail) {
+                        // If current email is not what admin set, logout immediately
+                        signOut(auth).then(() => { window.location.reload(); });
+                    } else {
+                        // All good, redirect to account
+                        window.location.href = "account.html";
+                    }
+                });
+            } else {
+                document.getElementById('loginBtn').style.display = 'flex';
+            }
+        });
+
+        let currentItem = null;
+
+        // Fetch Inventory
+        onValue(ref(db, 'inventory'), (snap) => {
+            const store = document.getElementById('productStore');
+            store.innerHTML = "";
+            snap.forEach(child => {
+                const item = child.val();
+                const isOut = item.stock <= 0;
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <span class="stock-badge ${isOut ? 'out-stock' : 'in-stock'}">${isOut ? 'Stock Out' : 'In Stock'}</span>
+                    <div class="card-img"><i class="fa-solid fa-prescription-bottle-medical"></i></div>
+                    <div class="card-title">${item.name}</div>
+                    <div class="card-info"><span>Stock:</span> <b>${item.stock} pcs</b></div>
+                    <div class="card-info"><span>Expiry:</span> <b style="color:#ef4444">${item.expiry || 'N/A'}</b></div>
+                    <div class="card-price">৳ ${item.price}</div>
+                    <button class="order-now-btn" ${isOut ? 'disabled' : ''} 
+                        onclick="window.openOrderModal('${item.name}', ${item.price}, ${item.stock})">
+                        ${isOut ? 'Stock Out' : 'Order Now'}
+                    </button>
+                `;
+                store.appendChild(card);
+            });
+        });
+
+        window.openOrderModal = (name, price, stock) => {
+            currentItem = { name, price, stock };
+            document.getElementById('targetItem').innerText = `${name} - ৳${price} (Per PC)`;
+            document.getElementById('orderModal').style.display = 'flex';
+        };
+
+        document.getElementById('closeModal').onclick = () => document.getElementById('orderModal').style.display = 'none';
+
+        document.getElementById('submitOrder').onclick = async () => {
+            const data = {
+                customerName: document.getElementById('userName').value,
+                district: document.getElementById('userDistrict').value,
+                upazila: document.getElementById('userUpazila').value,
+                village: document.getElementById('userVillage').value,
+                quantity: document.getElementById('userQty').value,
+                phone: document.getElementById('userPhone').value,
+                itemName: currentItem.name,
+                totalPrice: currentItem.price * document.getElementById('userQty').value,
+                status: 'pending',
+                date: new Date().toLocaleString()
+            };
+            if(!data.customerName || !data.phone || !data.village) return alert("Please fill important fields!");
+            await set(push(ref(db, 'orders')), data);
+            alert("Order success!");
+            document.getElementById('orderModal').style.display = 'none';
+        };
+
+        onValue(ref(db, 'siteSettings'), (snap) => {
+            const info = snap.val();
+            if (info) {
+                document.getElementById('wa_link').href = `https://wa.me/${info.whatsapp}`;
+                document.getElementById('f_address').innerText = info.address;
+                document.getElementById('f_phone').innerText = info.phone;
+                document.getElementById('f_email').innerText = info.email;
+            }
+        });
+
+        document.getElementById('mainSearch').oninput = (e) => {
+            const q = e.target.value.toLowerCase();
+            document.querySelectorAll('.card').forEach(c => {
+                c.style.display = c.querySelector('.card-title').innerText.toLowerCase().includes(q) ? 'flex' : 'none';
+            });
+        };
+    </script>
+</body>
+</html>
