@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Onyx Pharma - Enterprise Management</title>
+    <title>Onyx Pharma ERP - Enterprise Management</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         :root {
@@ -210,7 +210,7 @@
         });
 
         window.handleLogout = () => {
-            if(confirm("Confirm Logout?")) signOut(auth).then(() => location.reload());
+            if(confirm("Confirm Logout?")) signOut(auth).then(() => home());
         };
     </script>
 
@@ -242,5 +242,6 @@
             document.getElementById('mainFrame').style.opacity = '1';
         }
     </script>
+    <script>function home(){window.location.href="../user/user-index.html"}</script>
 </body>
 </html>
