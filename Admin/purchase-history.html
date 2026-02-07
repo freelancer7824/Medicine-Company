@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase History - Onyx Pharma</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --primary: #f85606; --bg: #eff0f5; --card: #ffffff;
+            --text: #212121; --dim: #757575; --border: #ced4da;
+            --success: #2e7d32; --danger: #d32f2f; --info: #1976d2;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Roboto', sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 15px; }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        .header h2 { font-size: 24px; font-weight: 800; border-left: 5px solid var(--primary); padding-left: 15px; }
+
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: var(--card); padding: 15px; border-radius: 10px; border: 1px solid var(--border); }
+        .stat-card span { font-size: 12px; color: var(--dim); font-weight: 700; text-transform: uppercase; display: block; }
+        .stat-card b { font-size: 18px; color: var(--text); }
+
+        .filter-box { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .filter-box input { flex: 1; min-width: 250px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; outline: none; }
+
+        .table-card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        th { background: #f8f9fa; text-align: left; padding: 15px; font-size: 12px; color: var(--dim); border-bottom: 2px solid #eee; }
+        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 14px; }
+
+        .badge { padding: 4px 10px; border-radius: 50px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .badge-paid { background: #e8f5e9; color: var(--success); }
+        .badge-due { background: #ffebee; color: var(--danger); }
+        .badge-partial { background: #e3f2fd; color: var(--info); }
+
+        .btn-view { background: #eee; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; transition: 0.3s; font-weight: 600; }
+        .btn-view:hover { background: var(--primary); color: #fff; }
+        .btn-pay-now { background: var(--primary); color: #fff; border: none; padding: 12px; border-radius: 8px; width: 100%; margin-top: 15px; cursor: pointer; font-weight: 700; font-size: 16px; }
+
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: #fff; width: 100%; max-width: 500px; border-radius: 15px; padding: 25px; position: relative; }
+        .close-modal { position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer; color: var(--dim); }
+        .modal-header { border-bottom: 2px solid var(--bg); padding-bottom: 10px; margin-bottom: 15px; }
+        .item-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 14px; }
+
+        /* Payment Form */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; color: var(--dim); }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; }
+
+        #loader { text-align: center; padding: 50px; font-weight: 700; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>Purchase History</h2>
+        <div id="total-orders" style="font-weight: 700; color: var(--dim);">Found: 0 Orders</div>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-card"><span>Total Purchased</span><b id="stat-total">৳ 0</b></div>
+        <div class="stat-card"><span>Total Due</span><b id="stat-due" style="color: var(--danger);">৳ 0</b></div>
+        <div class="stat-card"><span>Orders Count</span><b id="stat-count">0</b></div>
+    </div>
+
+    <div class="filter-box">
+        <input type="text" id="searchInp" placeholder="Search by Order ID or Supplier Name..." onkeyup="searchTable()">
+        <input type="date" id="dateFilter" onchange="searchTable()">
+    </div>
+
+    <div class="table-card">
+        <div id="loader"><i class="fa-solid fa-spinner fa-spin"></i> Loading History...</div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Order ID</th>
+                        <th>Supplier</th>
+                        <th>Total Amount</th>
+                        <th>Paid</th>
+                        <th>Due</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="detailsModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('detailsModal')">&times;</span>
+        <div class="modal-header">
+            <h3 id="m-poId" style="color: var(--primary);">#PO-000000</h3>
+            <p id="m-sup" style="font-weight: 700; margin-top: 5px;"></p>
+        </div>
+        <div id="modalItems" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px;"></div>
+        
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 10px;">
+            <div class="item-row"><span>Total Payable:</span><b id="m-total">৳ 0</b></div>
+            <div class="item-row"><span>Paid Amount:</span><b id="m-paid" style="color: var(--success);">৳ 0</b></div>
+            <div class="item-row" style="border:none;"><span>Current Due:</span><b id="m-due" style="color: var(--danger);">৳ 0</b></div>
+        </div>
+
+        <button id="payBtn" class="btn-pay-now" onclick="openPaymentModal()">Pay Now</button>
+    </div>
+</div>
+
+<div id="paymentModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <span class="close-modal" onclick="closeModal('paymentModal')">&times;</span>
+        <h3 style="margin-bottom: 20px; color: var(--primary);">Record Payment</h3>
+        <div class="form-group">
+            <label>Amount to Pay (৳)</label>
+            <input type="number" id="payAmountInput" placeholder="0.00">
+        </div>
+        <div class="form-group">
+            <label>Payment Method</label>
+            <select id="payMethod">
+                <option value="Cash">Cash</option>
+                <option value="Bank">Bank Transfer</option>
+                <option value="Mobile">bKash/Nagad</option>
+            </select>
+        </div>
+        <button class="btn-pay-now" onclick="submitPayment()">Confirm Payment</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+        databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+        projectId: "social-media-5e6c8",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const historyBody = document.getElementById('historyBody');
+    const loader = document.getElementById('loader');
+
+    window.ordersData = {};
+    window.currentEditingKey = null;
+
+    onValue(ref(db, 'purchase_orders'), (snapshot) => {
+        loader.style.display = 'none';
+        historyBody.innerHTML = '';
+        
+        let totalSum = 0;
+        let totalDueSum = 0;
+
+        if (snapshot.exists()) {
+            window.ordersData = snapshot.val();
+            const keys = Object.keys(window.ordersData).reverse();
+            document.getElementById('stat-count').innerText = keys.length;
+
+            keys.forEach(key => {
+                const order = window.ordersData[key];
+                const total = parseFloat(order.totalPayable || 0);
+                const paid = parseFloat(order.paidAmount || 0);
+                const due = total - paid;
+                
+                totalSum += total;
+                totalDueSum += due;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${order.date}</td>
+                    <td><strong>#${order.poId}</strong></td>
+                    <td>${order.supplierName}</td>
+                    <td style="font-weight:700">৳ ${total.toLocaleString()}</td>
+                    <td style="color:var(--success)">৳ ${paid.toLocaleString()}</td>
+                    <td style="color:var(--danger); font-weight:800">৳ ${due.toLocaleString()}</td>
+                    <td><span class="badge badge-${order.status.toLowerCase()}">${order.status}</span></td>
+                    <td><button class="btn-view" onclick="viewDetails('${key}')"><i class="fa-solid fa-eye"></i> View</button></td>
+                `;
+                historyBody.appendChild(tr);
+            });
+
+            document.getElementById('stat-total').innerText = "৳ " + totalSum.toLocaleString();
+            document.getElementById('stat-due').innerText = "৳ " + totalDueSum.toLocaleString();
+        }
+    });
+
+    window.viewDetails = (key) => {
+        window.currentEditingKey = key;
+        const order = window.ordersData[key];
+        const due = parseFloat(order.totalPayable) - parseFloat(order.paidAmount || 0);
+
+        document.getElementById('m-poId').innerText = "#" + order.poId;
+        document.getElementById('m-sup').innerText = "Supplier: " + order.supplierName;
+        document.getElementById('m-total').innerText = "৳ " + parseFloat(order.totalPayable).toLocaleString();
+        document.getElementById('m-paid').innerText = "৳ " + parseFloat(order.paidAmount || 0).toLocaleString();
+        document.getElementById('m-due').innerText = "৳ " + due.toLocaleString();
+
+        const itemsBox = document.getElementById('modalItems');
+        itemsBox.innerHTML = '';
+        order.items.forEach(item => {
+            itemsBox.innerHTML += `<div class="item-row"><span>${item.product} (x${item.qty})</span><b>৳ ${parseFloat(item.price * item.qty).toLocaleString()}</b></div>`;
+        });
+
+        document.getElementById('payBtn').style.display = (due > 0) ? 'block' : 'none';
+        document.getElementById('detailsModal').style.display = 'flex';
+    };
+
+    window.openPaymentModal = () => {
+        const order = window.ordersData[window.currentEditingKey];
+        const due = parseFloat(order.totalPayable) - parseFloat(order.paidAmount || 0);
+        document.getElementById('payAmountInput').value = due;
+        document.getElementById('paymentModal').style.display = 'flex';
+    };
+
+    window.submitPayment = async () => {
+        const payAmt = parseFloat(document.getElementById('payAmountInput').value);
+        if(!payAmt || payAmt <= 0) return alert("Enter valid amount");
+
+        const order = window.ordersData[window.currentEditingKey];
+        const newPaid = parseFloat(order.paidAmount || 0) + payAmt;
+        const total = parseFloat(order.totalPayable);
+        
+        let newStatus = "Partial";
+        if(newPaid >= total) newStatus = "Paid";
+
+        // Update Purchase Order
+        await update(ref(db, `purchase_orders/${window.currentEditingKey}`), {
+            paidAmount: newPaid,
+            dueAmount: total - newPaid,
+            status: newStatus
+        });
+
+        // Record in Supplier Payments Ledger
+        await push(ref(db, 'supplier_payments'), {
+            supplierId: order.supplierId,
+            supplierName: order.supplierName,
+            amount: payAmt,
+            method: document.getElementById('payMethod').value,
+            date: new Date().toISOString().split('T')[0],
+            timestamp: Date.now(),
+            refPo: order.poId
+        });
+
+        alert("Payment Successful!");
+        closeModal('paymentModal');
+        closeModal('detailsModal');
+    };
+
+    window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+</script>
+
+<script>
+    function searchTable() {
+        let input = document.getElementById("searchInp").value.toUpperCase();
+        let dateVal = document.getElementById("dateFilter").value;
+        let rows = document.getElementById("historyBody").getElementsByTagName("tr");
+
+        for (let i = 0; i < rows.length; i++) {
+            let rowText = rows[i].innerText.toUpperCase();
+            let rowDate = rows[i].getElementsByTagName("td")[0].innerText;
+            let matchesSearch = rowText.indexOf(input) > -1;
+            let matchesDate = dateVal === "" || rowDate === dateVal;
+            rows[i].style.display = (matchesSearch && matchesDate) ? "" : "none";
+        }
+    }
+</script>
+
+</body>
+</html>

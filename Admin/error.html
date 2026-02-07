@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 Server Error (Small Text)</title>
+    <style>
+        /* CSS for the page design */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f9fc; /* Very light background */
+            /* Use Flexbox to center the content vertically and horizontally */
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            min-height: 100vh; /* Full screen height */
+            margin: 0;
+            padding: 0;
+        }
+
+        .error-container {
+            text-align: center;
+            color: #b0c4de; /* Muted blue/grey for the error text */
+            
+            /* --- TEXT SIZE MODIFICATION --- */
+            font-size: 1.5em; /* Default/Desktop size is now smaller (was 2.5em) */
+            
+            font-weight: bold;
+            user-select: none;
+        }
+
+        .separator {
+            margin: 0 15px;
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+
+        .error-message {
+            letter-spacing: 2px;
+        }
+
+        /* Responsive size for very small screens */
+        @media (max-width: 600px) {
+            .error-container {
+                /* Small screen size is now smaller (was 1.8em) */
+                font-size: 1.2em; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <span class="error-code">500</span>
+        <span class="separator">|</span>
+        <span class="error-message">SERVER ERROR</span>
+    </div>
+</body>
+</html>

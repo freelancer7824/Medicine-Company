@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Management - Onyx Pharma</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --primary: #f85606; --bg: #eff0f5; --card: #ffffff;
+            --text: #212121; --dim: #757575; --border: #e0e0e0;
+            --danger: #d32f2f;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Roboto',sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 15px; }
+
+        /* Header Responsive */
+        .header-box { 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: space-between; 
+            align-items: center; 
+            gap: 15px;
+            margin-bottom: 20px; 
+        }
+        .header-box h2 { font-size: 20px; font-weight: 800; border-left: 4px solid var(--primary); padding-left: 12px; }
+
+        .btn-open-modal { 
+            background: var(--primary); color: white; padding: 10px 18px; 
+            border-radius: 8px; border: none; font-weight: 700; cursor: pointer; 
+            display: flex; align-items: center; gap: 8px; white-space: nowrap;
+        }
+
+        /* Search Area Responsive */
+        .search-area { background: var(--card); padding: 12px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--border); }
+        .search-area input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; font-size: 14px; }
+
+        /* Table Container - Mobile Scroll */
+        .table-container { 
+            background: var(--card); 
+            border-radius: 10px; 
+            border: 1px solid var(--border); 
+            overflow-x: auto; /* মোবাইলে টেবিলটি ডানে-বামে স্ক্রোল হবে */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); 
+        }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; /* টেবিলটি যেন খুব বেশি চেপে না যায় */ }
+        th { background: #fcfcfc; text-align: left; padding: 12px; font-size: 11px; color: var(--dim); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        td { padding: 12px; font-size: 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        
+        .btn-action { padding: 8px; border-radius: 5px; border: 1px solid var(--border); background: #fff; cursor: pointer; color: var(--danger); }
+
+        /* Modal Popup Responsive */
+        .modal-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.6); display: none; justify-content: center; 
+            align-items: center; z-index: 2000; padding: 15px; 
+        }
+        .modal-card { 
+            background: white; width: 100%; max-width: 450px; 
+            padding: 20px; border-radius: 12px; position: relative; 
+        }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 11px; font-weight: 700; color: var(--dim); margin-bottom: 4px; text-transform: uppercase; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
+        
+        .btn-save { width: 100%; background: var(--primary); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+
+        /* Tablet & Mobile Tweaks */
+        @media (max-width: 600px) {
+            .header-box h2 { font-size: 18px; }
+            .btn-open-modal { width: 100%; justify-content: center; }
+            .header-box { flex-direction: column; align-items: flex-start; }
+            .header-box div { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 style="font-size: 16px;"><i class="fa-solid fa-plus-circle" style="color:var(--primary)"></i> Add New Supplier</h3>
+                <i class="fa-solid fa-xmark" style="cursor:pointer" onclick="closeModal()"></i>
+            </div>
+            <div class="form-group">
+                <label>Company Name *</label>
+                <input type="text" id="supCompany" placeholder="e.g. Square Pharma">
+            </div>
+            <div class="form-group">
+                <label>Contact Person</label>
+                <input type="text" id="supName" placeholder="Name">
+            </div>
+            <div class="form-group">
+                <label>Phone *</label>
+                <input type="text" id="supPhone" placeholder="017XXXXXXXX">
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <input type="text" id="supAddress" placeholder="Location">
+            </div>
+            <button class="btn-save" id="saveBtn">Save Supplier</button>
+        </div>
+    </div>
+
+    <div class="header-box">
+        <div>
+            <h2><i class="fa-solid fa-truck-field"></i> Suppliers</h2>
+            <p id="sup-count" style="font-size: 12px; color: var(--dim);">0 Suppliers Total</p>
+        </div>
+        <button class="btn-open-modal" onclick="openModal()"><i class="fa-solid fa-plus"></i> Add New Supplier</button>
+    </div>
+
+    <div class="search-area">
+        <input type="text" id="searchInput" placeholder="Quick Search..." onkeyup="filterTable()">
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Company</th>
+                    <th>Contact</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th style="width: 50px;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="supplierList"></tbody>
+        </table>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, push, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+        databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+        projectId: "social-media-5e6c8",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // --- Save Data ---
+    document.getElementById('saveBtn').onclick = () => {
+        const company = document.getElementById('supCompany').value;
+        const phone = document.getElementById('supPhone').value;
+        if(!company || !phone) { alert("Fill required fields!"); return; }
+
+        const newRef = push(ref(db, 'suppliers'));
+        set(newRef, {
+            company, 
+            name: document.getElementById('supName').value,
+            phone, 
+            address: document.getElementById('supAddress').value,
+            addedAt: Date.now()
+        }).then(() => {
+            closeModal();
+            document.querySelectorAll('.modal-card input').forEach(i => i.value = '');
+        });
+    };
+
+    // --- Read Data ---
+    onValue(ref(db, 'suppliers'), (snap) => {
+        const list = document.getElementById('supplierList');
+        list.innerHTML = '';
+        if (snap.exists()) {
+            const data = snap.val();
+            document.getElementById('sup-count').innerText = Object.keys(data).length + " Suppliers Total";
+            Object.keys(data).forEach(key => {
+                const s = data[key];
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${s.company}</strong></td>
+                    <td>${s.name || '--'}</td>
+                    <td>${s.phone}</td>
+                    <td>${s.address || '--'}</td>
+                    <td><button class="btn-action" onclick="deleteSup('${key}')"><i class="fa-solid fa-trash"></i></button></td>
+                `;
+                list.appendChild(tr);
+            });
+        }
+    });
+
+    window.deleteSup = (id) => {
+        if(confirm("Remove this supplier?")) remove(ref(db, 'suppliers/' + id));
+    };
+</script>
+
+<script>
+    function openModal() { document.getElementById('modalOverlay').style.display = 'flex'; }
+    function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
+    function filterTable() {
+        let q = document.getElementById("searchInput").value.toUpperCase();
+        let rows = document.getElementById("supplierList").getElementsByTagName("tr");
+        for (let r of rows) { r.style.display = r.innerText.toUpperCase().includes(q) ? "" : "none"; }
+    }
+</script>
+</body>
+</html>

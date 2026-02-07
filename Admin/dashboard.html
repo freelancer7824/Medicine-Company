@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executive Dashboard - Onyx Pharma</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --primary: #f85606; --bg: #eff0f5; --card: #ffffff;
+            --text: #212121; --dim: #757575; --success: #2e7d32; --danger: #d32f2f;
+            --info: #1976d2; --purple: #7b1fa2;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Roboto',sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 25px; }
+        
+        .dash-title { margin-bottom: 25px; border-left: 5px solid var(--primary); padding-left: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .dash-title h2 { font-size: 24px; font-weight: 900; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+        
+        .stat-card { 
+            background: var(--card); padding: 45px 25px 20px; border-radius: 15px; 
+            display: flex; align-items: center; gap: 20px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s;
+            border: 1px solid transparent; position: relative;
+        }
+        .stat-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        
+        /* Dynamic Badge Container */
+        .card-metrics {
+            position: absolute; top: 10px; right: 12px; text-align: right;
+            font-size: 9px; font-weight: 700; line-height: 1.4;
+        }
+        .m-today { color: var(--primary); }
+        .m-month { color: var(--info); border-bottom: 1px solid #f0f0f0; padding-bottom: 2px; margin-bottom: 2px; }
+        .m-year { color: var(--success); font-weight: 800; }
+
+        .icon { 
+            width: 55px; height: 55px; border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; font-size: 22px; 
+        }
+        
+        .val { font-size: 22px; font-weight: 800; display: block; color: #000; margin-top: 5px; }
+        .lbl { font-size: 10px; color: var(--dim); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+        
+        .section-header { grid-column: 1/-1; margin-top: 25px; font-size: 12px; font-weight: 800; color: var(--dim); text-transform: uppercase; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+
+        .c-primary { background: #fff3ed; color: var(--primary); }
+        .c-green { background: #edf7ed; color: var(--success); }
+        .c-blue { background: #eef6ff; color: var(--info); }
+        .c-red { background: #fdefef; color: var(--danger); }
+        .c-purple { background: #f5eeff; color: var(--purple); }
+
+        @media (max-width: 600px) { body { padding: 15px; } .grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div class="dash-title">
+        <div>
+            <h2>Onyx Pharma Executive</h2>
+            <p style="color:var(--dim); font-size: 13px;">Auto-Adaptive Business Analytics</p>
+        </div>
+        <i class="fa-solid fa-sync fa-spin" style="font-size: 20px; color: var(--primary); opacity: 0.3;"></i>
+    </div>
+
+    <div class="grid">
+        <div class="section-header">Financial Trends</div>
+        
+        <div class="stat-card">
+            <div class="card-metrics">
+                <div class="m-today">TODAY: <span id="sales-today">৳0</span></div>
+                <div class="m-month">THIS MO: <span id="sales-this-m">৳0</span> | LAST: <span id="sales-last-m">৳0</span></div>
+                <div class="m-year"><span id="lbl-this-y">2026</span>: <span id="sales-this-y">৳0</span> | <span id="lbl-last-y">2025</span>: <span id="sales-last-y">৳0</span></div>
+            </div>
+            <div class="icon c-primary"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+            <div><span class="val" id="total-sales">৳0</span><span class="lbl">Lifetime Sales</span></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="card-metrics">
+                <div class="m-today">TODAY: <span id="profit-today">৳0</span></div>
+                <div class="m-month">THIS MO: <span id="profit-this-m">৳0</span> | LAST: <span id="profit-last-m">৳0</span></div>
+                <div class="m-year"><span id="lbl-this-y2">2026</span>: <span id="profit-this-y">৳0</span></div>
+            </div>
+            <div class="icon" id="profit-icon"><i class="fa-solid fa-chart-line"></i></div>
+            <div><span class="val" id="total-net-profit">৳0</span><span class="lbl" id="profit-label">Net Profit / Loss</span></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="card-metrics">
+                <div class="m-today">TODAY: <span id="exp-today">৳0</span></div>
+                <div class="m-month">THIS MO: <span id="exp-this-m">৳0</span> | LAST: <span id="exp-last-m">৳0</span></div>
+                <div class="m-year"><span id="lbl-this-y3">2026</span>: <span id="exp-this-y">৳0</span></div>
+            </div>
+            <div class="icon c-red"><i class="fa-solid fa-wallet"></i></div>
+            <div><span class="val" id="total-expense">৳0</span><span class="lbl">Lifetime Expenses</span></div>
+        </div>
+
+        <div class="section-header">Inventory & Assets</div>
+
+        <div class="stat-card">
+            <div class="icon c-blue"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <div><span class="val" id="total-invest">৳0</span><span class="lbl">Stock Investment Value</span></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="icon c-red"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+            <div><span class="val" id="total-dues" style="color: var(--danger);">৳0</span><span class="lbl">Outstanding Dues</span></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="icon c-primary"><i class="fa-solid fa-pills"></i></div>
+            <div><span class="val" id="count-low-stock">0</span><span class="lbl">Low Stock Alerts</span></div>
+        </div>
+
+        <div class="section-header">Stakeholders</div>
+
+        <div class="stat-card">
+            <div class="icon c-purple"><i class="fa-solid fa-users"></i></div>
+            <div><span class="val" id="count-customers">0</span><span class="lbl">Registered Customers</span></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="icon c-blue"><i class="fa-solid fa-truck-field"></i></div>
+            <div><span class="val" id="count-suppliers">0</span><span class="lbl">Suppliers</span></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="icon c-green"><i class="fa-solid fa-list-check"></i></div>
+            <div><span class="val" id="count-all-meds">0</span><span class="lbl">Total Product Types</span></div>
+        </div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+        databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+        projectId: "social-media-5e6c8",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // --- Dynamic Time Logic ---
+    const now = new Date();
+    const currY = now.getFullYear();
+    const lastY = currY - 1;
+
+    // UI Label Update
+    document.querySelectorAll('[id^="lbl-this-y"]').forEach(el => el.innerText = currY);
+    document.getElementById('lbl-last-y').innerText = lastY;
+
+    const startToday = new Date().setHours(0,0,0,0);
+    const startThisM = new Date(currY, now.getMonth(), 1).getTime();
+    const startLastM = new Date(currY, now.getMonth() - 1, 1).getTime();
+    const endLastM = new Date(currY, now.getMonth(), 0, 23, 59, 59).getTime();
+    
+    const startThisY = new Date(currY, 0, 1).getTime();
+    const startLastY = new Date(lastY, 0, 1).getTime();
+    const endLastY = new Date(lastY, 11, 31, 23, 59, 59).getTime();
+
+    let G = {
+        life: { s: 0, p: 0, e: 0 },
+        today: { s: 0, p: 0, e: 0 },
+        thisM: { s: 0, p: 0, e: 0 },
+        lastM: { s: 0, p: 0, e: 0 },
+        thisY: { s: 0, p: 0, e: 0 },
+        lastY: { s: 0, p: 0, e: 0 }
+    };
+
+    // 1. Inventory
+    onValue(ref(db, 'inventory'), (snap) => {
+        let invest = 0, low = 0, count = 0;
+        snap.forEach(c => {
+            const item = c.val();
+            const stock = parseFloat(item.stock) || 0;
+            invest += stock * (parseFloat(item.buyPrice) || 0);
+            if(stock <= 10) low++;
+            count++;
+        });
+        document.getElementById('total-invest').innerText = "৳" + Math.round(invest).toLocaleString();
+        document.getElementById('count-low-stock').innerText = low;
+        document.getElementById('count-all-meds').innerText = count;
+    });
+
+    // 2. Sales & Profit Logic
+    onValue(ref(db, 'sales'), (snap) => {
+        Object.keys(G).forEach(k => { G[k].s = 0; G[k].p = 0; });
+        let dues = 0;
+
+        snap.forEach(c => {
+            const s = c.val();
+            const t = s.timestamp || 0;
+            const paid = parseFloat(s.paid || 0);
+            dues += parseFloat(s.due || 0);
+            
+            let pft = 0;
+            if (s.totalProfit) pft = parseFloat(s.totalProfit);
+            else if (s.items) {
+                Object.values(s.items).forEach(i => {
+                    pft += ((parseFloat(i.price)||0) - (parseFloat(i.buyPrice)||0)) * (parseFloat(i.qty)||0);
+                });
+            }
+
+            G.life.s += paid; G.life.p += pft;
+            if(t >= startToday) { G.today.s += paid; G.today.p += pft; }
+            if(t >= startThisM) { G.thisM.s += paid; G.thisM.p += pft; }
+            if(t >= startLastM && t <= endLastM) { G.lastM.s += paid; G.lastM.p += pft; }
+            if(t >= startThisY) { G.thisY.s += paid; G.thisY.p += pft; }
+            if(t >= startLastY && t <= endLastY) { G.lastY.s += paid; G.lastY.p += pft; }
+        });
+        document.getElementById('total-dues').innerText = "৳" + Math.round(dues).toLocaleString();
+        updateUI();
+    });
+
+    // 3. Expense Logic
+    onValue(ref(db, 'expenses'), (snap) => {
+        Object.keys(G).forEach(k => { G[k].e = 0; });
+        snap.forEach(c => {
+            const amt = parseFloat(c.val().amount || 0);
+            const t = c.val().timestamp || 0;
+
+            G.life.e += amt;
+            if(t >= startToday) G.today.e += amt;
+            if(t >= startThisM) G.thisM.e += amt;
+            if(t >= startLastM && t <= endLastM) G.lastM.e += amt;
+            if(t >= startThisY) G.thisY.e += amt;
+            if(t >= startLastY && t <= endLastY) G.lastY.e += amt;
+        });
+        updateUI();
+    });
+
+    onValue(ref(db, 'customers'), s => document.getElementById('count-customers').innerText = s.exists() ? Object.keys(s.val()).length : 0);
+    onValue(ref(db, 'suppliers'), s => document.getElementById('count-suppliers').innerText = s.exists() ? Object.keys(s.val()).length : 0);
+
+    function updateUI() {
+        // Sales Display
+        document.getElementById('total-sales').innerText = "৳" + Math.round(G.life.s).toLocaleString();
+        document.getElementById('sales-today').innerText = "৳" + Math.round(G.today.s);
+        document.getElementById('sales-this-m').innerText = "৳" + Math.round(G.thisM.s);
+        document.getElementById('sales-last-m').innerText = "৳" + Math.round(G.lastM.s);
+        document.getElementById('sales-this-y').innerText = "৳" + Math.round(G.thisY.s);
+        document.getElementById('sales-last-y').innerText = "৳" + Math.round(G.lastY.s);
+
+        // Expense Display
+        document.getElementById('total-expense').innerText = "৳" + Math.round(G.life.e).toLocaleString();
+        document.getElementById('exp-today').innerText = "৳" + Math.round(G.today.e);
+        document.getElementById('exp-this-m').innerText = "৳" + Math.round(G.thisM.e);
+        document.getElementById('exp-last-m').innerText = "৳" + Math.round(G.lastM.e);
+        document.getElementById('exp-this-y').innerText = "৳" + Math.round(G.thisY.e);
+
+        // Profit Display (Net)
+        document.getElementById('profit-today').innerText = "৳" + Math.round(G.today.p - G.today.e);
+        document.getElementById('profit-this-m').innerText = "৳" + Math.round(G.thisM.p - G.thisM.e);
+        document.getElementById('profit-last-m').innerText = "৳" + Math.round(G.lastM.p - G.lastM.e);
+        document.getElementById('profit-this-y').innerText = "৳" + Math.round(G.thisY.p - G.thisY.e);
+
+        calculateNet();
+    }
+
+    function calculateNet() {
+        const net = G.life.p - G.life.e;
+        const el = document.getElementById('total-net-profit'), lbl = document.getElementById('profit-label'), icn = document.getElementById('profit-icon');
+        el.innerText = "৳" + Math.abs(Math.round(net)).toLocaleString();
+        if (net >= 0) {
+            el.style.color = "var(--success)"; lbl.innerText = "Lifetime Net Profit";
+            icn.className = "icon c-green"; icn.innerHTML = '<i class="fa-solid fa-chart-line"></i>';
+        } else {
+            el.style.color = "var(--danger)"; lbl.innerText = "Lifetime Net Loss";
+            icn.className = "icon c-red"; icn.innerHTML = '<i class="fa-solid fa-chart-area"></i>';
+        }
+    }
+</script>
+</body>
+</html>

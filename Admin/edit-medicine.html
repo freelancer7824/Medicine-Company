@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Inventory - Onyx Pharma</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --primary: #f85606;
+            --bg: #eff0f5;
+            --card: #ffffff;
+            --text-main: #212121;
+            --text-dim: #757575;
+            --border: #e0e0e0;
+            --success: #2e7d32;
+            --danger: #d32f2f;
+            --input-bg: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', 'Segoe UI', sans-serif; }
+        body { background: var(--bg); color: var(--text-main); padding: 15px; }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        /* Header UI */
+        .nav-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .nav-header h2 { color: var(--primary); font-size: 22px; font-weight: 800; }
+        .back-link { color: var(--text-dim); text-decoration: none; font-size: 14px; border: 1px solid var(--border); padding: 8px 15px; border-radius: 8px; background: #fff; transition: 0.2s; }
+        .back-link:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* Search Bar */
+        .search-container { position: relative; margin-bottom: 20px; width: 100%; }
+        .search-container i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-dim); }
+        .search-bar { width: 100%; background: var(--input-bg); border: 1px solid var(--border); padding: 12px 12px 12px 45px; border-radius: 12px; color: var(--text-main); outline: none; transition: 0.3s; }
+        .search-bar:focus { border-color: var(--primary); box-shadow: 0 0 8px rgba(248, 86, 6, 0.1); }
+
+        /* Medicine Row */
+        .med-row { 
+            background: var(--card); border: 1px solid var(--border); padding: 15px; 
+            border-radius: 12px; display: flex; justify-content: space-between; 
+            align-items: center; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            margin-bottom: 10px;
+        }
+        .med-row:hover { border-color: var(--primary); transform: translateX(5px); }
+
+        .med-info h4 { font-size: 16px; margin-bottom: 4px; color: #000; }
+        .med-info p { font-size: 12px; color: var(--text-dim); }
+        .med-meta { font-size: 13px; font-weight: bold; color: var(--primary); margin-top: 5px; }
+        .price-tag { font-size: 11px; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; color: #555; margin-right: 5px; }
+
+        .action-btns { display: flex; gap: 10px; }
+        .btn-edit { background: rgba(248, 86, 6, 0.05); color: var(--primary); border: 1px solid var(--primary); padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: 600; }
+        .btn-edit:hover { background: var(--primary); color: white; }
+        .btn-del { background: rgba(211, 47, 47, 0.05); color: var(--danger); border: 1px solid var(--danger); padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .btn-del:hover { background: var(--danger); color: white; }
+
+        /* Edit Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(3px); }
+        .modal-content { background: var(--card); width: 100%; max-width: 500px; padding: 25px; border-radius: 15px; box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+        .modal-header { margin-bottom: 20px; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
+        
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .full { grid-column: span 2; }
+        .form-group label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 5px; font-weight: 600; }
+        .form-group input { width: 100%; background: #f9f9f9; border: 1px solid var(--border); padding: 10px; border-radius: 8px; color: var(--text-main); outline: none; }
+        .form-group input:focus { border-color: var(--primary); }
+
+        .update-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 15px; }
+        
+        @media (max-width: 600px) {
+            .med-row { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .action-btns { width: 100%; justify-content: space-between; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="nav-header">
+            <h2><i class="fa-solid fa-pen-to-square"></i> Manage Stock</h2>
+            <a href="inventory.html" class="back-link">Inventory Home</a>
+        </div>
+
+        <div class="search-container">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" id="searchBox" class="search-bar" placeholder="Search medicine to edit...">
+        </div>
+
+        <div id="medicineList" class="inventory-list"></div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Update Medicine</h3></div>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label>Medicine Name</label>
+                        <input type="text" id="editName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Generic</label>
+                        <input type="text" id="editGeneric" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Rack No</label>
+                        <input type="text" id="editRack">
+                    </div>
+                    <div class="form-group">
+                        <label>Stock Qty</label>
+                        <input type="number" id="editStock" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Buy Price (৳)</label>
+                        <input type="number" id="editBuyPrice" step="0.01" required style="border-color: #ffcccc;">
+                    </div>
+                    <div class="form-group">
+                        <label>Sale Price (৳)</label>
+                        <input type="number" id="editPrice" step="0.01" required>
+                    </div>
+                    <div class="form-group full">
+                        <label>Expiry Date</label>
+                        <input type="month" id="editExpiry" required>
+                    </div>
+                </div>
+                <button type="submit" class="update-btn">UPDATE MEDICINE</button>
+                <button type="button" onclick="closeModal()" style="width:100%; background:none; border:none; color:var(--text-dim); margin-top:10px; cursor:pointer; font-weight:600;">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+            databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+            projectId: "social-media-5e6c8",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const invRef = ref(db, 'inventory');
+
+        // Load Data
+        onValue(invRef, (snap) => {
+            const list = document.getElementById('medicineList');
+            list.innerHTML = "";
+            snap.forEach(child => {
+                const p = child.val();
+                const id = child.key;
+                list.innerHTML += `
+                    <div class="med-row">
+                        <div class="med-info">
+                            <h4>${p.name}</h4>
+                            <p>${p.generic} | Rack: ${p.rack || 'N/A'}</p>
+                            <div class="med-meta">
+                                <span class="price-tag">Buy: ৳${p.buyPrice || '0.00'}</span>
+                                Stock: ${p.stock} Pcs | Sale: ৳${p.price}
+                            </div>
+                        </div>
+                        <div class="action-btns">
+                            <button class="btn-edit" onclick="openEdit('${id}', '${p.name}', '${p.generic}', '${p.rack}', '${p.stock}', '${p.price}', '${p.expiry}', '${p.buyPrice || 0}')">
+                                <i class="fa-solid fa-edit"></i> Edit
+                            </button>
+                            <button class="btn-del" onclick="deleteItem('${id}')">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>`;
+            });
+        });
+
+        // Edit Functions
+        window.openEdit = (id, name, generic, rack, stock, price, expiry, buyPrice) => {
+            document.getElementById('editId').value = id;
+            document.getElementById('editName').value = name;
+            document.getElementById('editGeneric').value = generic;
+            document.getElementById('editRack').value = rack;
+            document.getElementById('editStock').value = stock;
+            document.getElementById('editBuyPrice').value = buyPrice;
+            document.getElementById('editPrice').value = price;
+            document.getElementById('editExpiry').value = expiry;
+            document.getElementById('editModal').style.display = 'flex';
+        };
+
+        window.closeModal = () => document.getElementById('editModal').style.display = 'none';
+
+        document.getElementById('editForm').onsubmit = (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const bPrice = parseFloat(document.getElementById('editBuyPrice').value);
+            const sPrice = parseFloat(document.getElementById('editPrice').value);
+            
+            const data = {
+                name: document.getElementById('editName').value,
+                generic: document.getElementById('editGeneric').value,
+                rack: document.getElementById('editRack').value,
+                stock: parseInt(document.getElementById('editStock').value),
+                buyPrice: bPrice.toFixed(2),
+                price: sPrice.toFixed(2),
+                profitPerUnit: (sPrice - bPrice).toFixed(2),
+                expiry: document.getElementById('editExpiry').value
+            };
+            
+            update(ref(db, `inventory/${id}`), data).then(() => {
+                closeModal();
+                alert("Updated Successfully!");
+            });
+        };
+
+        window.deleteItem = (id) => {
+            if(confirm("Are you sure?")) remove(ref(db, `inventory/${id}`));
+        };
+
+        // Search functionality
+        document.getElementById('searchBox').onkeyup = function() {
+            let val = this.value.toLowerCase();
+            document.querySelectorAll('.med-row').forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(val) ? 'flex' : 'none';
+            });
+        };
+    </script>
+</body>
+</html>

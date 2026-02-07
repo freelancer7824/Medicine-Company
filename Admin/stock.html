@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management - Onyx Pharma</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --primary: #f85606; /* Onyx Orange */
+            --bg: #eff0f5;
+            --card: #ffffff;
+            --text-main: #212121;
+            --text-dim: #757575;
+            --border: #e0e0e0;
+            --success: #2e7d32;
+            --danger: #d32f2f;
+            --warning: #f57c00;
+            --input-bg: #f5f5f5;
+        }
+
+        /* Basic Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
+        body { background: var(--bg); color: var(--text-main); padding: 15px; overflow-x: hidden; }
+
+        /* --- Stats Cards --- */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { 
+            background: var(--card); 
+            padding: 20px; 
+            border-radius: 15px; 
+            border: 1px solid var(--border); 
+            display: flex; 
+            align-items: center; 
+            gap: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
+        .stat-card i { font-size: 28px; color: var(--primary); opacity: 0.9; }
+        .stat-card h3 { font-size: 24px; font-weight: 800; color: #000; }
+        .stat-card p { font-size: 13px; color: var(--text-dim); font-weight: 600; }
+
+        /* --- Inventory Section --- */
+        .inventory-card { 
+            background: var(--card); 
+            border-radius: 15px; 
+            border: 1px solid var(--border); 
+            overflow: hidden; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .table-toolbar { 
+            padding: 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-wrap: wrap; 
+            gap: 15px; 
+            border-bottom: 1px solid var(--border); 
+            background: #fafafa;
+        }
+        
+        .search-wrapper { position: relative; flex: 1; min-width: 250px; }
+        .search-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-dim); }
+        .search-input { 
+            width: 100%; 
+            background: #fff; 
+            border: 1px solid var(--border); 
+            padding: 12px 12px 12px 42px; 
+            border-radius: 10px; 
+            color: var(--text-main); 
+            outline: none; 
+            transition: 0.3s;
+        }
+        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(248, 86, 6, 0.1); }
+
+        .add-btn { 
+            background: var(--primary); 
+            color: #fff; 
+            border: none; 
+            padding: 12px 22px; 
+            border-radius: 10px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            display: none; 
+            align-items: center; 
+            gap: 8px; 
+            transition: 0.2s;
+        }
+        .add-btn:hover { background: #e04e05; transform: translateY(-1px); }
+
+        /* --- Responsive Table --- */
+        .table-container { overflow-x: auto; width: 100%; }
+        table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        th { background: #f8f9fa; padding: 15px; text-align: left; color: var(--text-dim); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--border); }
+        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+        tr:hover { background-color: #fdfdfd; }
+        
+        .med-name { font-weight: 800; display: block; color: #000; font-size: 15px; }
+        .med-generic { font-size: 12px; color: var(--text-dim); font-weight: 500; }
+        
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+        .bg-success { background: rgba(46, 125, 50, 0.1); color: var(--success); }
+        .bg-danger { background: rgba(211, 47, 47, 0.1); color: var(--danger); }
+        .bg-warning { background: rgba(245, 124, 0, 0.1); color: var(--warning); }
+
+        .action-btn { 
+            width: 35px; 
+            height: 35px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border); 
+            background: #fff; 
+            color: var(--text-dim); 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            transition: 0.2s; 
+        }
+        .action-btn:hover { border-color: var(--danger); color: var(--danger); background: rgba(211, 47, 47, 0.05); }
+
+        /* --- Modal System --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal-content { background: var(--card); border-radius: 20px; width: 95%; max-width: 500px; padding: 30px; box-shadow: 0 15px 30px rgba(0,0,0,0.1); position: relative; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .modal-header h3 { font-weight: 800; color: var(--primary); }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: span 2; }
+        .form-group label { font-size: 12px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; }
+        .form-group input { background: var(--input-bg); border: 1px solid var(--border); padding: 12px; border-radius: 10px; color: var(--text-main); outline: none; transition: 0.3s; }
+        .form-group input:focus { border-color: var(--primary); background: #fff; }
+        
+        .save-btn { width: 100%; background: var(--primary); color: #fff; border: none; padding: 15px; border-radius: 10px; font-weight: 800; cursor: pointer; margin-top: 25px; box-shadow: 0 4px 10px rgba(248, 86, 6, 0.2); }
+        .save-btn:hover { background: #e04e05; }
+
+        @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } .form-group.full { grid-column: span 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <i class="fa-solid fa-boxes-stacked"></i>
+            <div><p>Total Medicines</p><h3 id="totalItems">0</h3></div>
+        </div>
+        <div class="stat-card">
+            <i class="fa-solid fa-arrow-trend-down" style="color: var(--danger);"></i>
+            <div><p>Low Stock Items</p><h3 id="lowStockItems">0</h3></div>
+        </div>
+        <div class="stat-card">
+            <i class="fa-solid fa-hourglass-end" style="color: var(--warning);"></i>
+            <div><p>Expired Soon</p><h3 id="expiredItems">0</h3></div>
+        </div>
+    </div>
+
+    <div class="inventory-card">
+        <div class="table-toolbar">
+            <div class="search-wrapper">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" class="search-input" id="searchBar" placeholder="Search by name, generic or rack...">
+            </div>
+            <button class="add-btn" onclick="openModal()"><i class="fa-solid fa-plus-circle"></i> Add Medicine</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Medicine & Generic</th>
+                        <th>Rack No</th>
+                        <th>Expiry Date</th>
+                        <th>Stock Qty</th>
+                        <th>Unit Price</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="medTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal" id="medModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-pills"></i> New Medicine</h3>
+                <i class="fa-solid fa-times" onclick="closeModal()" style="cursor:pointer; color: var(--text-dim)"></i>
+            </div>
+            <form id="medForm">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label>Medicine Name</label>
+                        <input type="text" id="name" required placeholder="Napa Extend 665mg">
+                    </div>
+                    <div class="form-group">
+                        <label>Generic Name</label>
+                        <input type="text" id="generic" required placeholder="Paracetamol">
+                    </div>
+                    <div class="form-group">
+                        <label>Rack Location</label>
+                        <input type="text" id="rack" placeholder="A-10">
+                    </div>
+                    <div class="form-group">
+                        <label>Stock Qty (Pcs)</label>
+                        <input type="number" id="stock" required placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Price (৳)</label>
+                        <input type="number" step="0.01" id="price" required placeholder="0.00">
+                    </div>
+                    <div class="form-group full">
+                        <label>Expiry Month/Year</label>
+                        <input type="month" id="expiry" required>
+                    </div>
+                </div>
+                <button type="submit" class="save-btn">CONFIRM & SAVE</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+            databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+            projectId: "social-media-5e6c8",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const medRef = ref(db, 'inventory');
+
+        window.openModal = () => document.getElementById('medModal').style.display = 'flex';
+        window.closeModal = () => document.getElementById('medModal').style.display = 'none';
+
+        document.getElementById('medForm').onsubmit = (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('name').value,
+                generic: document.getElementById('generic').value,
+                rack: document.getElementById('rack').value || "N/A",
+                stock: parseInt(document.getElementById('stock').value),
+                price: document.getElementById('price').value,
+                expiry: document.getElementById('expiry').value
+            };
+            push(medRef, data).then(() => {
+                closeModal();
+                document.getElementById('medForm').reset();
+            });
+        };
+
+        onValue(medRef, (snapshot) => {
+            const tableBody = document.getElementById('medTableBody');
+            tableBody.innerHTML = "";
+            let total = 0, low = 0;
+
+            snapshot.forEach(child => {
+                const item = child.val();
+                const id = child.key;
+                total++;
+                if(item.stock < 10) low++;
+
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>
+                            <span class="med-name">${item.name}</span>
+                            <span class="med-generic">${item.generic}</span>
+                        </td>
+                        <td style="font-weight:700; color:var(--primary)">${item.rack}</td>
+                        <td>${item.expiry}</td>
+                        <td style="font-weight:700">${item.stock} pcs</td>
+                        <td style="font-weight:700">৳ ${item.price}</td>
+                        <td><span class="badge ${item.stock < 10 ? 'bg-danger' : 'bg-success'}">${item.stock < 10 ? 'Low Stock' : 'In Stock'}</span></td>
+                        <td>
+                            <button class="action-btn" onclick="deleteItem('${id}')"><i class="fa-solid fa-trash-alt"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('totalItems').innerText = total;
+            document.getElementById('lowStockItems').innerText = low;
+        });
+
+        window.deleteItem = (id) => {
+            if(confirm("Delete this medicine from inventory?")) remove(ref(db, `inventory/${id}`));
+        };
+
+        document.getElementById('searchBar').onkeyup = function() {
+            let val = this.value.toLowerCase();
+            document.querySelectorAll('#medTableBody tr').forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(val) ? '' : 'none';
+            });
+        };
+    </script>
+</body>
+</html>

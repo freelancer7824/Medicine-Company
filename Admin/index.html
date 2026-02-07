@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onyx Pharma ERP - Enterprise Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            /* মেইন সাইটের থিম কালার */
+            --primary: #f85606;
+            --bg-body: #eff0f5;
+            --nav-white: #ffffff;
+            --accent: #f85606;
+            --text-main: #212121;
+            --text-dim: #757575;
+            --border: #e0e0e0;
+            --hover-item: rgba(248, 86, 6, 0.08);
+            --danger: #d32f2f;
+            --success: #2e7d32;
+        }
+
+        /* Anti-Inspect & Reset */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', 'Inter', sans-serif; -webkit-user-select: none; user-select: none; }
+        body { display: flex; flex-direction: column; height: 100vh; background-color: var(--bg-body); color: var(--text-main); overflow: hidden; }
+
+        /* --- Top Navbar --- */
+        .top-nav { height: 60px; background: var(--nav-white); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; border-bottom: 1px solid var(--border); z-index: 1100; flex-shrink: 0; }
+        .logo { font-size: 20px; font-weight: 900; color: var(--primary); letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
+        .logo span { color: #212121; }
+
+        .nav-right { display: flex; align-items: center; gap: 15px; }
+        .user-profile { display: flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 50px; background: #f5f5f5; border: 1px solid var(--border); cursor: pointer; }
+        .user-profile img { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--primary); }
+        .user-name { font-size: 13px; font-weight: 600; color: var(--text-main); }
+
+        /* --- Sub Navbar --- */
+        .sub-nav { height: 55px; background: var(--nav-white); display: flex; align-items: center; padding: 0 10px; border-bottom: 1px solid var(--border); z-index: 1050; flex-shrink: 0; }
+        .toggle-btn { background: #f5f5f5; border: 1px solid var(--border); color: var(--primary); width: 38px; height: 38px; cursor: pointer; border-radius: 8px; margin-right: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        
+        .scroll-menu { display: flex; align-items: center; overflow-x: auto; flex: 1; white-space: nowrap; scrollbar-width: none; gap: 8px; }
+        .scroll-menu::-webkit-scrollbar { display: none; }
+        .quick-link { color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 8px 15px; border-radius: 6px; background: #ffffff; border: 1px solid var(--border); transition: 0.2s; display: flex; align-items: center; gap: 8px; font-weight: 500; }
+        .quick-link:hover { color: var(--primary); border-color: var(--primary); background: var(--hover-item); }
+
+        /* --- Main Wrapper --- */
+        .main-wrapper { display: flex; flex: 1; overflow: hidden; position: relative; }
+        
+        /* Sidebar */
+        .sidebar { width: 260px; background: var(--nav-white); border-right: 1px solid var(--border); padding: 15px 10px; transition: 0.3s ease; flex-shrink: 0; overflow-y: auto; scrollbar-width: thin; }
+        .side-label { font-size: 11px; color: #9e9e9e; font-weight: 700; text-transform: uppercase; margin: 15px 0 8px 15px; letter-spacing: 1px; }
+        .side-item { display: flex; align-items: center; justify-content: space-between; color: var(--text-main); padding: 11px 15px; text-decoration: none; font-size: 14px; margin-bottom: 4px; border-radius: 8px; cursor: pointer; transition: 0.2s; border: none; background: transparent; width: 100%; text-align: left; font-weight: 500; }
+        .side-item:hover, .side-item.active { background: var(--hover-item); color: var(--primary); }
+        .side-item i { width: 20px; font-size: 16px; margin-right: 10px; text-align: center; }
+
+        .dropdown-box { display: none; background: #fafafa; margin-left: 10px; border-left: 2px solid var(--primary); margin-bottom: 10px; border-radius: 0 8px 8px 0; }
+        .dropdown-box a { display: block; padding: 9px 15px 9px 25px; color: var(--text-dim); text-decoration: none; font-size: 13px; transition: 0.2s; }
+        .dropdown-box a:hover { color: var(--primary); padding-left: 30px; }
+
+        /* Content Area */
+        .content { flex: 1; background: #f0f0f2; position: relative; }
+        #loader { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 100; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #ddd; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* Overlay */
+        .sidebar-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; }
+
+        @media (max-width: 850px) {
+            .sidebar { position: absolute; left: -260px; height: 100%; z-index: 1000; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+            .sidebar.active { left: 0; }
+            .sidebar.active + .sidebar-overlay { display: block; }
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <header class="top-nav">
+        <div class="logo"><i class="fa-solid fa-house-medical"></i> ONYX<span>PHARMA</span></div>
+        <div class="nav-right">
+            <div class="user-profile">
+                <img id="userImg" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Admin">
+                <span id="userName" class="user-name">Loading...</span>
+            </div>
+        </div>
+    </header>
+
+    <nav class="sub-nav">
+        <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars-staggered"></i></button>
+        <div class="scroll-menu">
+            <a href="pos.html" target="mainFrame" class="quick-link" onclick="startLoad()"><i class="fa-solid fa-cash-register"></i> Billing POS</a>
+            <a href="stock.html" target="mainFrame" class="quick-link" onclick="startLoad()"><i class="fa-solid fa-boxes-stacked"></i> Live Stock</a>
+            <a href="expiry-alert.html" target="mainFrame" class="quick-link" onclick="startLoad()"><i class="fa-solid fa-clock"></i> Expiry Alert</a>
+            <a href="low-stock.html" target="mainFrame" class="quick-link" onclick="startLoad()"><i class="fa-solid fa-triangle-exclamation"></i> Low Stock</a>
+            <a href="today-sell.html" target="mainFrame" class="quick-link" onclick="startLoad()"><i class="fa-solid fa-file-invoice-dollar"></i> Today's Sale</a>
+        </div>
+    </nav>
+
+    <div class="main-wrapper">
+        <aside class="sidebar" id="sidebar">
+            <a href="dashboard.html" target="mainFrame" class="side-item active" onclick="startLoad()">
+                <span><i class="fa-solid fa-gauge"></i> Executive Summary</span>
+            </a>
+
+            <div class="side-label">Medicine Management</div>
+            <button class="side-item" onclick="toggleDrop(this)">
+                <span><i class="fa-solid fa-pills"></i> Inventory</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
+            </button>
+            <div class="dropdown-box">
+                <a href="edit-medicine.html" target="mainFrame">All Medicines</a>
+                <a href="new-medicine.html" target="mainFrame">Add New Medicine</a>
+                <a href="generic-setup.html" target="mainFrame">Generic Setup</a>
+                <a href="category.html" target="mainFrame">Category/Manufacturer</a>
+                <a href="rack-setup.html" target="mainFrame">Rack/Storage Setup</a>
+            </div>
+
+            <div class="side-label">Sales & Customer</div>
+            <button class="side-item" onclick="toggleDrop(this)">
+                <span><i class="fa-solid fa-receipt"></i> Sales Control</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
+            </button>
+            <div class="dropdown-box">
+                <a href="pos.html" target="mainFrame">Counter Sale (POS)</a>
+                <a href="invoice-list.html" target="mainFrame">Invoice List</a>
+                <a href="sales-return.html" target="mainFrame">Sales Return</a>
+                <a href="credit-record.html" target="mainFrame">Due Payments</a>
+            </div>
+
+            <button class="side-item" onclick="toggleDrop(this)">
+                <span><i class="fa-solid fa-users"></i> Customers</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
+            </button>
+            <div class="dropdown-box">
+                <a href="all-customer.html" target="mainFrame">Customer List</a>
+                <a href="credit-record.html" target="mainFrame">Credit Records</a>
+            </div>
+
+            <div class="side-label">Purchase & Suppliers</div>
+            <button class="side-item" onclick="toggleDrop(this)">
+                <span><i class="fa-solid fa-truck-field"></i> Procurement</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
+            </button>
+            <div class="dropdown-box">
+                <a href="suplier-list.html" target="mainFrame">Supplier List</a>
+                <a href="purchase.html" target="mainFrame">Purchase Order</a>
+                <a href="purchase-history.html" target="mainFrame">Purchase History</a>
+                <a href="supplier-ledger.html" target="mainFrame">Supplier Ledger</a>
+            </div>
+
+            <div class="side-label">Accounts & HR</div>
+            <a href="expense.html" class="side-item" target="mainFrame" onclick="startLoad()"><span><i class="fa-solid fa-wallet"></i> Petty Cash / Expense</span></a>
+            <a href="#" class="side-item" onclick="startLoad()"><span><i class="fa-solid fa-user-tie"></i> Staff Payroll</span></a>
+
+            <div class="side-label">Reports & Analytics</div>
+            <button class="side-item" onclick="toggleDrop(this)">
+                <span><i class="fa-solid fa-chart-bar"></i> Master Reports</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
+            </button>
+            <div class="dropdown-box">
+                <a href="#" target="mainFrame">Profit/Loss Report</a>
+                <a href="#" target="mainFrame">Daily Sales Log</a>
+                <a href="#" target="mainFrame">Stock Value Report</a>
+                <a href="#" target="mainFrame">Vat/Tax Summary</a>
+            </div>
+
+            <div class="side-label">Configuration</div>
+            <a href="footer-setting.html" class="side-item" target="mainFrame" onclick="startLoad()"><span><i class="fa-solid fa-gears"></i> Software Settings</span></a>
+            <a href="#" class="side-item" onclick="startLoad()"><span><i class="fa-solid fa-database"></i> Backup & Restore</span></a>
+
+            <button class="side-item" style="color: var(--danger); margin-top: 15px;" onclick="handleLogout()">
+                <span><i class="fa-solid fa-right-from-bracket"></i> Close Session</span>
+            </button>
+        </aside>
+
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+        <main class="content">
+            <div id="loader"><div class="spinner"></div></div>
+            <iframe name="mainFrame" id="mainFrame" src="dashboard.html" onload="stopLoad()"></iframe>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+            authDomain: "social-media-5e6c8.firebaseapp.com",
+            databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+            projectId: "social-media-5e6c8",
+            storageBucket: "social-media-5e6c8.firebasestorage.app",
+            messagingSenderId: "897473713729",
+            appId: "1:897473713729:web:7ba552ed4c1be8754418c0",
+            measurementId: "G-7JJTYPSX5P"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('userName').innerText = user.displayName || "Admin User";
+                if(user.photoURL) document.getElementById('userImg').src = user.photoURL;
+            } else {
+                document.getElementById('userName').innerText = "Guest Admin";
+            }
+        });
+
+        window.handleLogout = () => {
+            if(confirm("Confirm Logout?")) signOut(auth).then(() => location.reload());
+        };
+    </script>
+
+    <script>
+        // Anti-Inspect Security
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) || (e.ctrlKey && e.keyCode == 85)) return false;
+        };
+
+        // UI Functions
+        function toggleSidebar() { 
+            document.getElementById('sidebar').classList.toggle('active'); 
+        }
+
+        function toggleDrop(btn) {
+            let box = btn.nextElementSibling;
+            box.style.display = (box.style.display === "block") ? "none" : "block";
+            btn.querySelector(".fa-chevron-down").style.transform = (box.style.display === "block") ? "rotate(180deg)" : "rotate(0deg)";
+        }
+
+        function startLoad() {
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('mainFrame').style.opacity = '0.3';
+            if (window.innerWidth <= 850) toggleSidebar();
+        }
+
+        function stopLoad() {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('mainFrame').style.opacity = '1';
+        }
+    </script>
+</body>
+</html>

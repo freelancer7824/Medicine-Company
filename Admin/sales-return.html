@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Return Manager - Onyx Pharma</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #f85606;
+            --secondary: #2c3e50;
+            --danger: #e74c3c;
+            --success: #27ae60;
+            --bg: #f4f7f6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: #333; padding: 15px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        /* Search Styling */
+        .search-group { display: flex; gap: 10px; margin-top: 10px; }
+        input { flex: 1; padding: 12px; border: 2px solid #eee; border-radius: 10px; outline: none; }
+        .btn { padding: 12px 25px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .btn-search { background: var(--secondary); color: white; }
+        .btn-confirm { background: var(--danger); color: white; width: 100%; justify-content: center; margin-top: 15px; font-size: 16px; }
+
+        /* Table Styling */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { text-align: left; padding: 12px; background: #f8f9fa; color: #777; font-size: 13px; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+        .qty-input { width: 60px; padding: 5px; text-align: center; border: 1px solid #ddd; }
+
+        /* Return History List */
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 10px; }
+        .status-refund { color: var(--danger); font-weight: bold; font-size: 14px; }
+        
+        .return-panel { display: none; border-top: 4px solid var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2><i class="fa-solid fa-rotate-left"></i> Sales Return</h2>
+        <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Search invoice to return items or view history below</p>
+
+        <div class="card">
+            <label style="font-weight: bold;">Step 1: Search Invoice</label>
+            <div class="search-group">
+                <input type="text" id="invInput" placeholder="Enter last 6 digits of Invoice ID">
+                <button class="btn btn-search" onclick="findInvoice()"><i class="fa-solid fa-magnifying-glass"></i> Find</button>
+            </div>
+        </div>
+
+        <div id="returnPanel" class="card return-panel">
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                <h4 id="dispCust"></h4>
+                <h4 id="dispId" style="color: var(--primary);"></h4>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Sold Qty</th>
+                        <th>Return Qty</th>
+                        <th style="text-align: right;">Refund</th>
+                    </tr>
+                </thead>
+                <tbody id="returnItemsBody"></tbody>
+            </table>
+
+            <div style="text-align: right; margin-top: 15px;">
+                <p>Total Refundable Cash:</p>
+                <h2 style="color: var(--danger);">৳<span id="refundTotal">0</span></h2>
+                <button class="btn btn-confirm" onclick="processReturn()"><i class="fa-solid fa-check-double"></i> CONFIRM CASH REFUND</button>
+            </div>
+        </div>
+
+        <div class="history-header">
+            <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Returns</h3>
+            <span id="returnCount" style="background: #ddd; padding: 2px 10px; border-radius: 20px; font-size: 12px;">0 Returns</span>
+        </div>
+
+        <div class="card" style="padding: 0;">
+            <table style="margin-top: 0;">
+                <thead style="background: #eee;">
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Customer</th>
+                        <th>Inv ID</th>
+                        <th style="text-align: right;">Refund Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, get, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+            databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+            projectId: "social-media-5e6c8",
+            appId: "1:897473713729:web:7ba552ed4c1be8754418c0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let currentInvoice = null;
+        let invoiceKey = "";
+        let returnData = {};
+
+        // --- PART 1: Find and Render ---
+        window.findInvoice = async () => {
+            const id = document.getElementById('invInput').value.trim().toUpperCase();
+            if(!id) return;
+            
+            const snap = await get(ref(db, 'sales'));
+            let found = false;
+            snap.forEach(child => {
+                if(child.key.toUpperCase().endsWith(id)) {
+                    currentInvoice = child.val();
+                    invoiceKey = child.key;
+                    found = true;
+                }
+            });
+
+            if(found) {
+                document.getElementById('returnPanel').style.display = 'block';
+                document.getElementById('dispCust').innerText = currentInvoice.customerName;
+                document.getElementById('dispId').innerText = "#" + invoiceKey.slice(-6).toUpperCase();
+                
+                const tbody = document.getElementById('returnItemsBody');
+                tbody.innerHTML = "";
+                currentInvoice.items.forEach((item, index) => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${item.qty}</td>
+                            <td><input type="number" class="qty-input" value="0" min="0" max="${item.qty}" 
+                                oninput="calcSub(${index}, this.value, ${item.price})"></td>
+                            <td align="right" id="sub_${index}">৳0</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                alert("Invoice Not Found!");
+            }
+        };
+
+        window.calcSub = (index, qty, price) => {
+            qty = parseInt(qty) || 0;
+            if(qty > currentInvoice.items[index].qty) qty = currentInvoice.items[index].qty;
+            const sub = qty * price;
+            document.getElementById(`sub_${index}`).innerText = "৳" + sub;
+            returnData[index] = { name: currentInvoice.items[index].name, qty: qty, sub: sub };
+            
+            let total = 0;
+            Object.values(returnData).forEach(i => total += i.sub);
+            document.getElementById('refundTotal').innerText = total;
+        };
+
+        // --- PART 2: Save Return ---
+        window.processReturn = async () => {
+            const total = parseFloat(document.getElementById('refundTotal').innerText);
+            if(total <= 0) return alert("Select items to return");
+
+            if(confirm(`Refund ৳${total} Cash?`)) {
+                const returnRef = push(ref(db, 'returns'));
+                await set(returnRef, {
+                    invId: invoiceKey.slice(-6).toUpperCase(),
+                    customer: currentInvoice.customerName,
+                    amount: total,
+                    time: new Date().toLocaleString()
+                });
+                alert("Refund Recorded Successfully!");
+                location.reload();
+            }
+        };
+
+        // --- PART 3: Load History (This is what you wanted to see) ---
+        onValue(ref(db, 'returns'), (snap) => {
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = "";
+            let count = 0;
+            snap.forEach(child => {
+                const data = child.val();
+                const tr = `<tr>
+                    <td style="font-size:12px;">${data.time}</td>
+                    <td style="font-weight:bold;">${data.customer}</td>
+                    <td>#${data.invId}</td>
+                    <td align="right" class="status-refund">-৳${data.amount}</td>
+                </tr>`;
+                tbody.insertAdjacentHTML('afterbegin', tr); // Newest on top
+                count++;
+            });
+            document.getElementById('returnCount').innerText = count + " Returns";
+        });
+
+    </script>
+</body>
+</html>

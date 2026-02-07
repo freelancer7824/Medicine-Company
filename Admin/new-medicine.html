@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Entry - Onyx Pharma</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #f85606;
+            --primary-soft: #fff5f0;
+            --bg: #eff0f5;
+            --card: #ffffff;
+            --text-main: #212121;
+            --text-dim: #757575;
+            --border: #e8e8e8;
+            --success: #00b894;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); color: var(--text-main); padding: 10px; }
+
+        .nav-header {
+            max-width: 1100px;
+            margin: 10px auto 20px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .logo-area h2 { 
+            color: var(--primary); font-size: clamp(20px, 5vw, 26px); font-weight: 800; 
+            display: flex; align-items: center; gap: 10px; 
+        }
+        .back-btn { 
+            background: var(--card); border: 1px solid var(--border); color: var(--text-dim); 
+            padding: 10px 18px; border-radius: 12px; text-decoration: none; 
+            font-size: 14px; font-weight: 700; transition: 0.3s;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .form-wrapper {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: var(--card);
+            border-radius: 20px;
+            padding: clamp(20px, 5vw, 45px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+            border: 1px solid var(--border);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+
+        @media (min-width: 650px) {
+            .form-grid { grid-template-columns: repeat(2, 1fr); }
+            .full-width { grid-column: span 2; }
+        }
+
+        @media (min-width: 950px) {
+            .form-grid { grid-template-columns: repeat(3, 1fr); }
+            .full-width { grid-column: span 3; }
+        }
+
+        label { 
+            font-size: 11px; color: var(--text-dim); text-transform: uppercase; 
+            letter-spacing: 1px; font-weight: 800;
+        }
+        
+        input, select {
+            background: #fcfcfc;
+            border: 2px solid #f0f0f0;
+            padding: 14px;
+            border-radius: 14px;
+            color: var(--text-main);
+            outline: none;
+            font-size: 15px;
+            font-weight: 600;
+            width: 100%;
+            transition: 0.3s;
+        }
+
+        input:focus, select:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px var(--primary-soft); }
+
+        .input-box-row { display: flex; gap: 8px; }
+        .quick-btn {
+            background: var(--primary-soft); color: var(--primary);
+            width: 50px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            text-decoration: none; font-size: 18px; flex-shrink: 0;
+            border: 1.5px solid transparent; transition: 0.3s;
+        }
+        .quick-btn:hover { background: var(--primary); color: #fff; }
+
+        .save-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #f85606 0%, #e04e05 100%);
+            color: #fff; border: none; padding: 18px; border-radius: 16px;
+            font-weight: 800; font-size: 16px; cursor: pointer;
+            margin-top: 10px; transition: 0.3s; text-transform: uppercase;
+            box-shadow: 0 10px 20px rgba(248, 86, 6, 0.2);
+        }
+        .save-btn:hover { transform: translateY(-2px); opacity: 0.95; }
+
+        #toast {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
+            background: var(--success); color: white; padding: 15px 30px; 
+            border-radius: 50px; display: none; z-index: 10000; font-weight: 700;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px;
+        }
+        
+        /* Highlight Buying Price Section */
+        .buy-price-group { background: #fdf2f2; padding: 10px; border-radius: 16px; }
+    </style>
+</head>
+<body>
+
+    <div class="nav-header">
+        <div class="logo-area">
+            <h2><i class="fa-solid fa-box-archive"></i> New Stock</h2>
+        </div>
+        <a href="inventory.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back</a>
+    </div>
+
+    <div class="form-wrapper">
+        <form id="medForm">
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>Medicine Name</label>
+                    <input type="text" id="name" required placeholder="e.g. Napa Extend">
+                </div>
+
+                <div class="form-group">
+                    <label>Generic</label>
+                    <div class="input-box-row">
+                        <select id="generic" required><option value="">Loading...</option></select>
+                        <a href="generic-setup.html" class="quick-btn"><i class="fa-solid fa-plus"></i></a>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Category</label>
+                    <div class="input-box-row">
+                        <select id="category" required><option value="">Loading...</option></select>
+                        <a href="category.html" class="quick-btn"><i class="fa-solid fa-plus"></i></a>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Manufacturer</label>
+                    <div class="input-box-row">
+                        <select id="manufacturer" required><option value="">Loading...</option></select>
+                        <a href="category.html" class="quick-btn"><i class="fa-solid fa-plus"></i></a>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Rack Location</label>
+                    <div class="input-box-row">
+                        <select id="rack" required><option value="">Loading...</option></select>
+                        <a href="rack-setup.html" class="quick-btn"><i class="fa-solid fa-layer-group"></i></a>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Stock Qty (Pcs)</label>
+                    <input type="number" id="stock" required placeholder="0">
+                </div>
+
+                <div class="form-group">
+                    <label style="color: #d63031;">Buy Price (Per Pc ৳)</label>
+                    <input type="number" step="0.01" id="buy_price" required placeholder="0.00" style="border-color: #ffdada;">
+                </div>
+
+                <div class="form-group">
+                    <label style="color: var(--success);">Sale Price (Per Pc ৳)</label>
+                    <input type="number" step="0.01" id="price" required placeholder="0.00">
+                </div>
+                
+                <div class="form-group">
+                    <label>Expiry Date</label>
+                    <input type="month" id="expiry" required>
+                </div>
+
+                <div class="form-group full-width">
+                    <button type="submit" class="save-btn">
+                        <i class="fa-solid fa-check-circle"></i> Save Medicine
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div id="toast">Stock Entry Successful!</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+            databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+            projectId: "social-media-5e6c8",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        function loadToSelect(dbPath, selectId, label) {
+            onValue(ref(db, dbPath), (snap) => {
+                const select = document.getElementById(selectId);
+                select.innerHTML = `<option value="">-- Choose ${label} --</option>`;
+                if(snap.exists()) {
+                    snap.forEach(child => {
+                        let opt = document.createElement('option');
+                        opt.value = child.val().name;
+                        opt.innerText = child.val().name;
+                        select.appendChild(opt);
+                    });
+                }
+            });
+        }
+
+        loadToSelect('generics', 'generic', 'Generic');
+        loadToSelect('categories', 'category', 'Category');
+        loadToSelect('manufacturers', 'manufacturer', 'Company');
+        loadToSelect('racks', 'rack', 'Rack');
+
+        document.getElementById('medForm').onsubmit = (e) => {
+            e.preventDefault();
+            
+            const bPrice = parseFloat(document.getElementById('buy_price').value);
+            const sPrice = parseFloat(document.getElementById('price').value);
+
+            const data = {
+                name: document.getElementById('name').value,
+                generic: document.getElementById('generic').value,
+                category: document.getElementById('category').value,
+                manufacturer: document.getElementById('manufacturer').value,
+                rack: document.getElementById('rack').value,
+                stock: parseInt(document.getElementById('stock').value),
+                buyPrice: bPrice.toFixed(2),  // ক্রয়মূল্য সেভ হচ্ছে
+                price: sPrice.toFixed(2),     // বিক্রয়মূল্য সেভ হচ্ছে
+                profitPerUnit: (sPrice - bPrice).toFixed(2), // প্রতি ইউনিটে লাভ
+                expiry: document.getElementById('expiry').value,
+                entryDate: new Date().toISOString()
+            };
+
+            push(ref(db, 'inventory'), data).then(() => {
+                showToast();
+                document.getElementById('medForm').reset();
+            });
+        };
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+    </script>
+</body>
+</html>

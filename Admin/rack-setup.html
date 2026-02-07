@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storage Setup - Onyx Pharma</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #f85606;
+            --bg: #eff0f5;
+            --card: #ffffff;
+            --text-main: #212121;
+            --text-dim: #757575;
+            --border: #e0e0e0;
+            --danger: #ff4757;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); color: var(--text-main); padding: clamp(10px, 3vw, 30px); }
+
+        .container { max-width: 800px; margin: 0 auto; }
+
+        /* Header */
+        .header { margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .header h2 { color: var(--primary); font-size: 24px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        
+        /* Setup Card */
+        .setup-card {
+            background: var(--card);
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+            margin-bottom: 25px;
+        }
+
+        label { font-size: 11px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block; }
+        
+        .input-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        input { 
+            flex: 1; min-width: 200px; padding: 15px; border: 2px solid #f0f0f0; 
+            border-radius: 14px; outline: none; font-weight: 600; font-size: 15px; transition: 0.3s;
+        }
+        input:focus { border-color: var(--primary); background: #fff; }
+
+        .add-btn { 
+            background: var(--primary); color: white; border: none; padding: 0 30px; 
+            height: 52px; border-radius: 14px; font-weight: 700; cursor: pointer; 
+            transition: 0.3s; display: flex; align-items: center; gap: 8px;
+        }
+        .add-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(248, 86, 6, 0.3); }
+
+        /* List Table */
+        .data-table-wrapper {
+            background: white; border-radius: 24px; overflow: hidden; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid var(--border);
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8f9fa; padding: 18px; text-align: left; font-size: 12px; color: var(--text-dim); text-transform: uppercase; }
+        td { padding: 18px; border-top: 1px solid #eee; font-weight: 600; font-size: 15px; }
+        
+        .delete-btn { 
+            color: var(--danger); background: #fff1f2; border: none; width: 40px; height: 40px;
+            border-radius: 10px; cursor: pointer; transition: 0.2s;
+        }
+        .delete-btn:hover { background: var(--danger); color: white; }
+
+        .empty-msg { padding: 40px; text-align: center; color: var(--text-dim); font-weight: 600; }
+
+        @media (max-width: 500px) {
+            .input-group { flex-direction: column; }
+            .add-btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2><i class="fa-solid fa-boxes-stacked"></i> Rack Setup</h2>
+        <a href="add-medicine.html" style="text-decoration: none; color: var(--text-dim); font-weight: 700; font-size: 14px;">
+            <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <div class="setup-card">
+        <label>Create New Rack / Shelf</label>
+        <div class="input-group">
+            <input type="text" id="rackInput" placeholder="e.g. Rack A-1, Shelf-02, Cold Storage...">
+            <button class="add-btn" onclick="saveRack()">
+                <i class="fa-solid fa-plus"></i> ADD RACK
+            </button>
+        </div>
+    </div>
+
+    <div class="data-table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th width="80px">SL</th>
+                    <th>Rack Name / Location</th>
+                    <th width="100px" style="text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="rackList">
+                </tbody>
+        </table>
+        <div id="noData" class="empty-msg" style="display: none;">No racks found. Add one above!</div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+        projectId: "social-media-5e6c8",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Save Rack
+    window.saveRack = () => {
+        const rackVal = document.getElementById('rackInput').value.trim();
+        if(!rackVal) return alert("Please enter a rack name");
+        
+        push(ref(db, 'racks'), { 
+            name: rackVal,
+            createdAt: new Date().toISOString()
+        }).then(() => {
+            document.getElementById('rackInput').value = "";
+        });
+    };
+
+    // Load Racks
+    onValue(ref(db, 'racks'), (snap) => {
+        const list = document.getElementById('rackList');
+        const noData = document.getElementById('noData');
+        list.innerHTML = "";
+        
+        if(!snap.exists()) {
+            noData.style.display = "block";
+            return;
+        }
+        
+        noData.style.display = "none";
+        let i = 1;
+        snap.forEach(child => {
+            const data = child.val();
+            list.innerHTML += `
+                <tr>
+                    <td>${i++}</td>
+                    <td><i class="fa-solid fa-location-dot" style="color: #ccc; margin-right: 10px;"></i> ${data.name}</td>
+                    <td style="text-align: center;">
+                        <button class="delete-btn" onclick="deleteRack('${child.key}')">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>`;
+        });
+    });
+
+    // Delete Rack
+    window.deleteRack = (id) => {
+        if(confirm("Are you sure you want to delete this rack?")) {
+            remove(ref(db, `racks/${id}`));
+        }
+    };
+</script>
+
+</body>
+</html>

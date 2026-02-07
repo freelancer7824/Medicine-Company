@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onyx Pharma POS - Ultra Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #f85606;
+            --bg: #eff0f5;
+            --card: #ffffff;
+            --border: #e0e0e0;
+            --text: #212121;
+            --danger: #d32f2f;
+            --success: #2e7d32;
+            --info: #1976d2; /* নতুন কালার কেনা দামের জন্য */
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 15px; }
+
+        .header-action { 
+            display: flex; align-items: center; gap: 12px; max-width: 1200px; margin: 0 auto 15px auto; 
+            background: var(--card); padding: 10px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            position: sticky; top: 10px; z-index: 1000;
+        }
+        .search-wrapper { position: relative; flex: 1; }
+        .search-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #757575; }
+        .search-bar { width: 100%; background: #f1f2f4; border: none; padding: 12px 40px; border-radius: 8px; outline: none; font-size: 16px; }
+        
+        .view-cart-btn { background: var(--primary); color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; position: relative; }
+        .cart-count { position: absolute; top: -5px; right: -5px; background: #000; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; border: 2px solid #fff; }
+
+        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 1200px; margin: 0 auto; }
+        .product-card { 
+            background: var(--card); padding: 15px; border-radius: 12px; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03); border: 2px solid transparent; transition: 0.2s;
+            position: relative;
+        }
+        .product-card.selected { border-color: var(--primary); background: #fffcfb; transform: translateY(-2px); }
+        .product-card.selected::after { content: '\f058'; font-family: 'Font Awesome 5 Free'; font-weight: 900; position: absolute; top: 10px; right: 10px; color: var(--primary); font-size: 18px; }
+
+        .product-card h4 { font-size: 14px; font-weight: 700; color: #000; margin-bottom: 5px; }
+        .info-text { font-size: 11px; margin-bottom: 2px; font-weight: 600; }
+        .price-tag { color: var(--success); font-size: 18px; font-weight: 900; display: block; margin-top: 8px; }
+
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .modal-content { background: var(--card); width: 92%; max-width: 450px; border-radius: 15px; padding: 20px; position: relative; }
+        
+        .input-field { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 8px; margin-top: 8px; outline: none; font-weight: 600; font-size: 15px; }
+        .suggest-box { background: white; border: 1px solid #ddd; max-height: 150px; overflow-y: auto; display: none; border-radius: 8px; margin-top: 5px; position: absolute; width: 100%; z-index: 2500; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .suggest-opt { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; }
+
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn { padding: 14px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 13px; }
+        .btn-black { background: #1a1a1a; color: #fff; }
+        .btn-orange { background: var(--primary); color: #fff; }
+
+        #printable-area { display: none; background: #fff; }
+        #memo-print { width: 100%; max-width: 380px; margin: 0 auto; padding: 25px 15px; color: #000; background: #fff; border: 1px solid #eee; }
+        .memo-header { text-align: center; margin-bottom: 20px; }
+        .memo-header h2 { font-size: 24px; color: var(--primary); font-weight: 900; margin-bottom: 5px; }
+        .memo-info { display: flex; justify-content: space-between; font-size: 12px; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 8px 0; margin-bottom: 15px; }
+        .memo-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        .memo-table th { text-align: left; font-size: 12px; border-bottom: 1px solid #eee; padding: 8px 0; }
+        .memo-table td { padding: 8px 0; font-size: 13px; }
+        .memo-totals { margin-top: 10px; border-top: 1.5px solid #000; padding-top: 10px; }
+        .total-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 14px; }
+        .total-row.grand-total { font-weight: 900; font-size: 18px; border-top: 1px dashed #ccc; }
+        .memo-footer { text-align: center; margin-top: 30px; font-size: 11px; border-top: 1px solid #eee; padding-top: 15px; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #printable-area, #printable-area * { visibility: visible; }
+            #printable-area { display: block !important; position: absolute; left: 0; top: 0; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-action">
+        <div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="pSearch" class="search-bar" placeholder="Search medicine name...">
+        </div>
+        <button class="view-cart-btn" onclick="toggleCart()">
+            <i class="fa-solid fa-cart-shopping"></i> <span id="cartCount" class="cart-count">0</span>
+        </button>
+    </div>
+
+    <div class="product-grid" id="pGrid"></div>
+
+    <div class="modal-overlay" id="addCustModal" style="z-index: 3500;">
+        <div class="modal-content">
+            <h3 style="color:var(--primary)">+ New Customer</h3>
+            <input type="text" id="newCustName" class="input-field" placeholder="Full Name *">
+            <input type="text" id="newCustPhone" class="input-field" placeholder="Mobile Number *">
+            <input type="text" id="newCustAddr" class="input-field" placeholder="Address (Optional)">
+            <div class="btn-group">
+                <button onclick="closeM('addCustModal')" class="btn btn-black">Cancel</button>
+                <button onclick="saveNewCustomer()" class="btn btn-orange">Save & Select</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="qtyModal">
+        <div class="modal-content">
+            <h3 id="qName">Quantity</h3>
+            <input type="number" id="qInput" class="input-field" style="font-size: 28px; text-align: center; color:var(--primary)" value="1">
+            <div class="btn-group">
+                <button onclick="closeM('qtyModal')" class="btn btn-black">Cancel</button>
+                <button onclick="addToCart()" class="btn btn-orange">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="cartModal">
+        <div class="modal-content">
+            <h3>Finalize Sale</h3>
+            <div style="position: relative; margin-top: 10px;">
+                <label style="font-size: 12px; font-weight: bold;">Select Customer (Required):</label>
+                <input type="text" id="cSearch" class="input-field" style="border: 2px solid #f8560644" placeholder="Type name or phone...">
+                <div id="cSuggest" class="suggest-box"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                <button onclick="openAddCust()" style="background:none; border:none; color:var(--primary); font-size:13px; font-weight:bold; cursor:pointer">+ Create New</button>
+                <div id="prevDueDisplay" style="color:var(--danger); font-size:12px; font-weight:bold"></div>
+            </div>
+            <div id="cartItems" style="margin: 15px 0; max-height: 180px; overflow-y:auto; border-top: 1px solid #eee; padding-top: 10px;"></div>
+            <div style="background:#f1f2f4; padding:15px; border-radius:10px">
+                <div style="display:flex; justify-content:space-between; font-size:18px"><span>Total:</span> <b id="totalText" style="color:var(--primary)">৳0</b></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px">
+                    <span>Cash Paid:</span> <input type="number" id="paidInput" class="input-field" style="width:130px; margin:0; padding:8px">
+                </div>
+            </div>
+            <div class="btn-group">
+                <button onclick="processSale('print')" class="btn btn-black"><i class="fa-solid fa-print"></i> PRINT</button>
+                <button onclick="processSale('pdf')" class="btn btn-orange"><i class="fa-solid fa-file-pdf"></i> SAVE PDF</button>
+            </div>
+            <button onclick="closeM('cartModal')" style="width:100%; border:none; margin-top:15px; background:none; color:#757575; cursor:pointer">Cancel</button>
+        </div>
+    </div>
+
+    <div id="printable-area">
+        <div id="memo-print">
+            <div class="memo-header">
+                <h2>ONYX PHARMA</h2>
+                <p>Medical College Gate, Rajshahi<br>Phone: 01700-000000</p>
+            </div>
+            <div class="memo-info">
+                <div><p><b>Date:</b> <span id="mDate"></span></p><p><b>Inv:</b> #<span id="mInvId"></span></p></div>
+                <div style="text-align: right;"><p><b>Customer:</b></p><p><span id="mCust"></span></p></div>
+            </div>
+            <table class="memo-table">
+                <thead><tr><th>ITEM</th><th style="text-align: center;">QTY</th><th style="text-align: right;">TOTAL</th></tr></thead>
+                <tbody id="mItems"></tbody>
+            </table>
+            <div class="memo-totals">
+                <div class="total-row"><span>Subtotal:</span> <span id="mTotal"></span></div>
+                <div class="total-row"><span>Cash Paid:</span> <span id="mPaid"></span></div>
+                <div class="total-row" style="color:red"><span>Due:</span> <span id="mDue"></span></div>
+                <div class="total-row grand-total"><span>GRAND TOTAL:</span> <span id="mGrandTotal"></span></div>
+            </div>
+            <div class="memo-footer"><p><b>Wish you a speedy recovery!</b></p></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+            databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+            projectId: "social-media-5e6c8",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        let cart = [], products = [], allCustomers = [], selProd = null, selCust = null;
+
+        onValue(ref(db, 'inventory'), (snap) => {
+            products = []; snap.forEach(c => { let p = c.val(); p.id = c.key; products.push(p); });
+            renderProducts(products);
+        });
+
+        function renderProducts(data) {
+            const grid = document.getElementById('pGrid'); grid.innerHTML = "";
+            const now = new Date();
+            data.forEach(p => {
+                const exp = new Date(p.expiry);
+                const isExpired = exp < now;
+                const isLow = p.stock < 10;
+                const isSel = cart.some(i => i.id === p.id);
+                const buyPrice = p.buyPrice || 0; // কেনা দাম
+                
+                const card = document.createElement('div');
+                card.className = `product-card ${isSel ? 'selected' : ''}`;
+                card.onclick = () => { selProd = p; document.getElementById('qName').innerText=p.name; document.getElementById('qtyModal').style.display='flex'; };
+                
+                // এখানে কেনা দামের লাইনটি যোগ করা হয়েছে
+                card.innerHTML = `
+                    <h4>${p.name}</h4>
+                    <p class="info-text" style="color:${isExpired ? 'var(--danger)' : 'var(--success)'}">EXP: ${p.expiry}</p>
+                    <p class="info-text" style="color:${isLow ? 'var(--danger)' : 'var(--success)'}">Stock: ${p.stock}</p>
+                    <p class="info-text" style="color:var(--info)">Buy Price: ৳${buyPrice}</p>
+                    <b class="price-tag">৳${p.price}</b>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('pSearch').oninput = (e) => {
+            const val = e.target.value.toLowerCase();
+            renderProducts(products.filter(p => p.name.toLowerCase().includes(val)));
+        };
+
+        onValue(ref(db, 'customers'), (snap) => {
+            allCustomers = []; snap.forEach(c => { let cu = c.val(); cu.id = c.key; allCustomers.push(cu); });
+        });
+
+        const cInp = document.getElementById('cSearch');
+        const cSug = document.getElementById('cSuggest');
+        cInp.oninput = () => {
+            const val = cInp.value.toLowerCase();
+            cSug.innerHTML = ""; selCust = null;
+            if(!val) { cSug.style.display='none'; return; }
+            const match = allCustomers.filter(c => c.name.toLowerCase().includes(val) || c.phone.includes(val));
+            if(match.length) {
+                cSug.style.display='block';
+                match.forEach(c => {
+                    const d = document.createElement('div'); d.className='suggest-opt';
+                    d.innerText = `${c.name} (${c.phone})`;
+                    d.onclick = () => { cInp.value = c.name; selCust = c; cSug.style.display='none'; if(c.due) document.getElementById('prevDueDisplay').innerText = `Old Due: ৳${c.due}`; };
+                    cSug.appendChild(d);
+                });
+            }
+        };
+
+        window.openAddCust = () => document.getElementById('addCustModal').style.display='flex';
+        window.closeM = (id) => document.getElementById(id).style.display='none';
+
+        window.saveNewCustomer = async () => {
+            const n = document.getElementById('newCustName').value;
+            const p = document.getElementById('newCustPhone').value;
+            if(!n || !p) return alert("Name and Phone required!");
+            const newRef = push(ref(db, 'customers'));
+            await set(newRef, { name: n, phone: p, due: 0 });
+            cInp.value = n; selCust = { id: newRef.key, name: n, phone: p, due: 0 };
+            closeM('addCustModal');
+        };
+
+        window.addToCart = () => {
+            const q = parseInt(document.getElementById('qInput').value);
+            if(q > 0 && q <= selProd.stock) {
+                cart = cart.filter(i => i.id !== selProd.id);
+                cart.push({...selProd, qty: q});
+                document.getElementById('cartCount').innerText = cart.length;
+                renderProducts(products); closeM('qtyModal');
+            } else alert("Invalid Quantity!");
+        };
+
+        window.toggleCart = () => {
+            if(!cart.length) return alert("Cart is empty!");
+            document.getElementById('cartModal').style.display='flex';
+            const list = document.getElementById('cartItems'); list.innerHTML = "";
+            let total = 0;
+            cart.forEach(i => { total += i.price * i.qty; list.innerHTML += `<div style="display:flex;justify-content:space-between;margin-bottom:5px"><span>${i.name} (x${i.qty})</span><b>৳${i.price*i.qty}</b></div>`; });
+            document.getElementById('totalText').innerText = "৳" + total;
+            document.getElementById('paidInput').value = total;
+        };
+
+        window.processSale = async (type) => {
+            if(!selCust && !cInp.value.trim()) { alert("Enter Customer Name!"); cInp.focus(); return; }
+
+            const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+            const profit = cart.reduce((s, i) => s + ((i.price - (i.buyPrice || 0)) * i.qty), 0);
+            const paid = parseFloat(document.getElementById('paidInput').value) || 0;
+            const due = total - paid;
+            const cName = selCust ? selCust.name : cInp.value;
+            const invId = Date.now().toString().slice(-6);
+            const todayDate = new Date().toLocaleDateString('en-GB');
+
+            for(let i of cart) { await set(ref(db, `inventory/${i.id}/stock`), i.stock - i.qty); }
+            if(selCust && due > 0) { await set(ref(db, `customers/${selCust.id}/due`), (selCust.due || 0) + due); }
+            
+            await push(ref(db, 'sales'), { 
+                customerName: cName, 
+                total, 
+                paid, 
+                due, 
+                totalProfit: profit, 
+                date: todayDate, 
+                timestamp: Date.now(), 
+                items: cart 
+            });
+
+            document.getElementById('mCust').innerText = cName;
+            document.getElementById('mDate').innerText = todayDate;
+            document.getElementById('mInvId').innerText = invId;
+            document.getElementById('mTotal').innerText = "৳" + total;
+            document.getElementById('mGrandTotal').innerText = "৳" + total;
+            document.getElementById('mPaid').innerText = "৳" + paid;
+            document.getElementById('mDue').innerText = "৳" + due;
+            const mb = document.getElementById('mItems'); mb.innerHTML = "";
+            cart.forEach(i => mb.innerHTML += `<tr><td>${i.name}</td><td align="center">${i.qty}</td><td align="right">৳${i.price*i.qty}</td></tr>`);
+
+            if(type === 'print') {
+                window.print();
+            } else {
+                const el = document.getElementById('memo-print');
+                document.getElementById('printable-area').style.display='block';
+                const opt = { margin: 0, filename: 'Inv_'+invId+'.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 3 }, jsPDF: { unit: 'mm', format: [80, 150], orientation: 'portrait' } };
+                await html2pdf().from(el).set(opt).save();
+                document.getElementById('printable-area').style.display='none';
+            }
+            alert("Success!"); location.reload();
+        };
+    </script>
+</body>
+</html>

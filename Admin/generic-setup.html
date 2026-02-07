@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generic Setup | Onyx Pharma</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --primary: #f85606;
+            --bg: #f4f7f6;
+            --text-main: #2d3436;
+            --border: #dfe6e9;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* --- Header --- */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .page-header h2 { font-weight: 800; font-size: 22px; color: #1a1a1a; }
+
+        /* --- Setup Form --- */
+        .setup-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+        }
+
+        .form-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        input:focus { border-color: var(--primary); }
+
+        .btn-add {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-add:hover { opacity: 0.9; }
+
+        /* --- Data Table --- */
+        .data-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .search-bar {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            background: #fafafa;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f8f9fa;
+            text-align: left;
+            padding: 12px 15px;
+            color: #636e72;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:hover { background: #fffcfb; }
+
+        .action-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-del {
+            color: #d63031;
+            background: #fff5f5;
+            border: 1px solid #fab1a0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-del:hover { background: #d63031; color: white; }
+
+        .empty-state {
+            padding: 40px;
+            text-align: center;
+            color: #b2bec3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="page-header">
+            <h2><i class="fa-solid fa-flask-vial" style="color: var(--primary);"></i> Generic Names Setup</h2>
+        </div>
+
+        <div class="setup-card">
+            <div class="form-group">
+                <input type="text" id="genericInput" placeholder="Enter Generic Name (e.g. Paracetamol, Omeprazole)">
+                <button class="btn-add" onclick="addGeneric()"><i class="fa-solid fa-plus"></i> Save Generic</button>
+            </div>
+        </div>
+
+        <div class="data-card">
+            <div class="search-bar">
+                <input type="text" id="searchInput" oninput="filterGeneric()" placeholder="Quick search generic names...">
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th width="10%">SL</th>
+                        <th>Generic Name</th>
+                        <th width="15%">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="genericList">
+                    </tbody>
+            </table>
+            <div id="emptyMsg" class="empty-state" style="display: none;">No generic records found.</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+            projectId: "social-media-5e6c8",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const dbRef = ref(db, 'generics');
+
+        // Add Data
+        window.addGeneric = async () => {
+            const name = document.getElementById('genericInput').value.trim();
+            if(!name) return alert("Please enter a generic name!");
+
+            try {
+                const newRef = push(dbRef);
+                await set(newRef, { name: name, timestamp: Date.now() });
+                document.getElementById('genericInput').value = "";
+            } catch (e) { alert("Error saving data"); }
+        };
+
+        // Load Data
+        onValue(dbRef, (snapshot) => {
+            const list = document.getElementById('genericList');
+            const empty = document.getElementById('emptyMsg');
+            list.innerHTML = "";
+            
+            if(!snapshot.exists()) {
+                empty.style.display = "block";
+                return;
+            }
+            empty.style.display = "none";
+
+            let count = 1;
+            snapshot.forEach((child) => {
+                const data = child.val();
+                const id = child.key;
+                const row = `
+                    <tr>
+                        <td>${count++}</td>
+                        <td><b>${data.name}</b></td>
+                        <td>
+                            <button class="btn-del" onclick="deleteGeneric('${id}')">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                list.innerHTML += row;
+            });
+        });
+
+        // Delete Data
+        window.deleteGeneric = (id) => {
+            if(confirm("Are you sure you want to remove this generic?")) {
+                remove(ref(db, `generics/${id}`));
+            }
+        };
+
+        // Client-side Search Filter
+        window.filterGeneric = () => {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#genericList tr');
+            rows.forEach(row => {
+                const text = row.children[1].innerText.toLowerCase();
+                row.style.display = text.includes(q) ? "" : "none";
+            });
+        };
+    </script>
+</body>
+</html>

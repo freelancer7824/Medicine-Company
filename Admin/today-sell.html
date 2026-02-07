@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Today's Sales Report - Onyx Pharma</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --primary: #f85606;
+            --bg: #eff0f5;
+            --card: #ffffff;
+            --text-main: #212121;
+            --text-dim: #757575;
+            --border: #e0e0e0;
+            --success: #2e7d32;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text-main); font-family: 'Inter', sans-serif; padding: 15px; line-height: 1.6; }
+
+        /* Header Layout */
+        .header { 
+            display: flex; 
+            flex-direction: row;
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
+            padding: 20px;
+            background: var(--card);
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            gap: 15px;
+        }
+
+        .header-title h2 { font-size: 1.4rem; font-weight: 800; color: #000; }
+        .header-title p { font-size: 13px; color: var(--primary); font-weight: 700; }
+
+        .stat-group { display: flex; gap: 12px; }
+        .mini-stat { 
+            background: #f8f9fa; 
+            padding: 12px 20px; 
+            border-radius: 12px; 
+            border: 1px solid var(--border); 
+            text-align: center;
+            min-width: 120px;
+        }
+        .mini-stat span { display: block; font-size: 10px; color: var(--text-dim); text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
+        .mini-stat b { font-size: 18px; color: var(--primary); font-weight: 900; }
+
+        /* Table Container */
+        .report-wrapper {
+            background: var(--card); 
+            border-radius: 15px; 
+            border: 1px solid var(--border);
+            width: 100%;
+            overflow-x: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 600px; }
+        th { background: #fafafa; padding: 18px; color: var(--text-dim); font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; border-bottom: 2px solid var(--border); }
+        td { padding: 18px; border-bottom: 1px solid var(--border); font-size: 14px; color: #333; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: #fffaf8; }
+
+        .badge-id { font-family: 'Courier New', monospace; color: #000; background: #f0f0f0; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; border: 1px solid var(--border); }
+        .amount { font-weight: 900; color: var(--primary); font-size: 15px; }
+        .items-cell { max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; color: #555; }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-dim); }
+        .empty-state i { color: var(--border); font-size: 50px; margin-bottom: 15px; }
+
+        /* Media Queries for Mobile */
+        @media (max-width: 650px) {
+            .header { flex-direction: column; align-items: flex-start; padding: 15px; }
+            .stat-group { width: 100%; }
+            .mini-stat { flex: 1; padding: 10px; }
+            .header-title h2 { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-title">
+            <h2><i class="fa-solid fa-chart-line" style="color: var(--primary);"></i> Sales Report</h2>
+            <p id="current-date"></p>
+        </div>
+        <div class="stat-group">
+            <div class="mini-stat">
+                <span>Total Orders</span>
+                <b id="total-orders">0</b>
+            </div>
+            <div class="mini-stat">
+                <span>Net Revenue</span>
+                <b id="total-revenue">৳ 0</b>
+            </div>
+        </div>
+    </div>
+
+    <div class="report-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Invoice ID</th>
+                    <th>Time</th>
+                    <th>Medicines Sold</th>
+                    <th style="text-align: right;">Total Amount</th>
+                </tr>
+            </thead>
+            <tbody id="sales-tbody">
+                </tbody>
+        </table>
+        <div id="empty-msg" class="empty-state" style="display:none;">
+            <i class="fa-solid fa-receipt"></i>
+            <p style="font-weight: 600;">No sales recorded yet today.</p>
+            <small>Once a sale is made, it will appear here instantly.</small>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+            databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+            projectId: "social-media-5e6c8",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const todayDateStr = new Date().toLocaleDateString();
+        document.getElementById('current-date').innerText = new Date().toDateString().toUpperCase();
+
+        onValue(ref(db, 'sales'), (snap) => {
+            const tbody = document.getElementById('sales-tbody');
+            const emptyMsg = document.getElementById('empty-msg');
+            tbody.innerHTML = "";
+            
+            let revenue = 0;
+            let orders = 0;
+
+            if (snap.exists()) {
+                const salesArray = [];
+                snap.forEach(child => {
+                    const data = child.val();
+                    const sDate = new Date(data.date).toLocaleDateString();
+                    
+                    if (sDate === todayDateStr) {
+                        salesArray.unshift({ id: child.key, ...data });
+                        revenue += Number(data.total) || 0;
+                        orders++;
+                    }
+                });
+
+                salesArray.forEach(sale => {
+                    const time = new Date(sale.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const names = sale.items.map(i => i.name).join(', ');
+
+                    const row = `
+                        <tr>
+                            <td><span class="badge-id">#${sale.id.substr(-5).toUpperCase()}</span></td>
+                            <td style="font-weight: 600;">${time}</td>
+                            <td class="items-cell" title="${names}">${names}</td>
+                            <td class="amount" style="text-align: right;">৳ ${Number(sale.total).toFixed(2)}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            }
+
+            document.getElementById('total-orders').innerText = orders;
+            document.getElementById('total-revenue').innerText = "৳ " + revenue.toLocaleString(undefined, {minimumFractionDigits: 2});
+            emptyMsg.style.display = (orders === 0) ? "block" : "none";
+        });
+    </script>
+</body>
+</html>

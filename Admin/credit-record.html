@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Records - Onyx Pharma</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #f85606;
+            --bg: #eff0f5;
+            --card: #ffffff;
+            --danger: #d32f2f;
+            --success: #2e7d32;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); padding: 10px; color: #333; }
+
+        .container { max-width: 800px; margin: 0 auto; }
+
+        /* Summary Card */
+        .summary-card {
+            background: linear-gradient(135deg, #d32f2f, #f85606);
+            color: white; padding: 25px; border-radius: 15px;
+            margin-bottom: 20px; text-align: center;
+            box-shadow: 0 4px 15px rgba(248, 86, 6, 0.3);
+        }
+        .summary-card h2 { font-size: 32px; margin-top: 5px; }
+        .summary-card p { opacity: 0.9; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Search Box */
+        .search-box { position: relative; margin-bottom: 15px; }
+        .search-box input { 
+            width: 100%; padding: 15px 45px; border-radius: 12px; border: none; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); outline: none; font-size: 16px;
+        }
+        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #888; }
+
+        /* Credit List */
+        .credit-list { display: grid; gap: 10px; }
+        .credit-card {
+            background: #fff; padding: 15px; border-radius: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-left: 5px solid var(--danger);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .info h4 { font-size: 16px; margin-bottom: 3px; }
+        .info p { font-size: 12px; color: #666; }
+        
+        .action { text-align: right; }
+        .due-val { color: var(--danger); font-weight: 800; font-size: 18px; display: block; }
+        .collect-btn { 
+            background: var(--success); color: white; border: none; 
+            padding: 6px 12px; border-radius: 6px; font-size: 12px; 
+            font-weight: bold; cursor: pointer; margin-top: 5px;
+        }
+
+        /* Responsive Modal (Bottom Sheet) */
+        .modal { 
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); 
+            z-index: 2000; justify-content: center; align-items: flex-end; backdrop-filter: blur(3px);
+        }
+        .modal-content { 
+            background: #fff; width: 100%; max-width: 500px; padding: 25px;
+            border-radius: 20px 20px 0 0; animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .input-group { margin-top: 15px; }
+        .input-group label { font-size: 13px; font-weight: bold; color: #666; }
+        .input-group input { 
+            width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; 
+            border: 2px solid #eee; outline: none; font-size: 18px; font-weight: bold;
+        }
+        .update-btn { 
+            width: 100%; background: var(--primary); color: white; border: none; 
+            padding: 15px; border-radius: 10px; font-weight: 800; margin-top: 20px; cursor: pointer;
+        }
+
+        .back-btn { text-decoration: none; color: #555; font-size: 14px; margin-bottom: 10px; display: inline-block; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="javascript:history.back()" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Go Back</a>
+        
+        <div class="summary-card">
+            <p>Total Outstanding Balance</p>
+            <h2 id="totalDueGlobal">৳0</h2>
+        </div>
+
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="creditSearch" placeholder="Find debtor by name or phone...">
+        </div>
+
+        <div class="credit-list" id="creditItemsUI">
+            </div>
+    </div>
+
+    <div class="modal" id="payModal">
+        <div class="modal-content">
+            <h3 id="mCustName">Collect Payment</h3>
+            <p id="mCustPhone" style="font-size: 13px; color: #888;"></p>
+            
+            <div class="input-group">
+                <label>Current Due</label>
+                <input type="text" id="currentDueInp" disabled style="background: #f9f9f9; border-color: #eee; color: #d32f2f;">
+            </div>
+
+            <div class="input-group">
+                <label>Paying Amount (৳)</label>
+                <input type="number" id="payAmountInp" placeholder="0.00">
+            </div>
+
+            <button class="update-btn" onclick="submitPayment()">UPDATE BALANCE</button>
+            <button onclick="closeM()" style="width:100%; background:none; border:none; margin-top:15px; color:#999; cursor:pointer">Cancel</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, set, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+            databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+            projectId: "social-media-5e6c8",
+            appId: "1:897473713729:web:7ba552ed4c1be8754418c0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let debtors = [];
+        let activeCust = null;
+
+        // Fetch Customers with Due > 0
+        onValue(ref(db, 'customers'), (snap) => {
+            debtors = [];
+            let globalTotal = 0;
+            snap.forEach(c => {
+                let data = c.val();
+                data.uid = c.key;
+                if(data.due > 0) {
+                    debtors.push(data);
+                    globalTotal += data.due;
+                }
+            });
+            document.getElementById('totalDueGlobal').innerText = "৳" + globalTotal;
+            renderDebtors(debtors);
+        });
+
+        function renderDebtors(list) {
+            const container = document.getElementById('creditItemsUI');
+            container.innerHTML = list.length ? "" : "<p style='text-align:center; padding:20px; color:#888;'>No credit records found.</p>";
+            
+            list.sort((a,b) => b.due - a.due).forEach(d => {
+                const card = document.createElement('div');
+                card.className = 'credit-card';
+                card.innerHTML = `
+                    <div class="info">
+                        <h4>${d.name}</h4>
+                        <p><i class="fa-solid fa-phone"></i> ${d.phone}</p>
+                    </div>
+                    <div class="action">
+                        <span class="due-val">৳${d.due}</span>
+                        <button class="collect-btn" onclick="openPayModal('${d.uid}')">COLLECT CASH</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Search
+        document.getElementById('creditSearch').oninput = (e) => {
+            const val = e.target.value.toLowerCase();
+            const filtered = debtors.filter(d => d.name.toLowerCase().includes(val) || d.phone.includes(val));
+            renderDebtors(filtered);
+        };
+
+        window.openPayModal = (uid) => {
+            activeCust = debtors.find(d => d.uid === uid);
+            document.getElementById('mCustName').innerText = activeCust.name;
+            document.getElementById('mCustPhone').innerText = activeCust.phone;
+            document.getElementById('currentDueInp').value = "৳" + activeCust.due;
+            document.getElementById('payAmountInp').value = "";
+            document.getElementById('payModal').style.display = 'flex';
+        };
+
+        window.closeM = () => { document.getElementById('payModal').style.display = 'none'; };
+
+        window.submitPayment = async () => {
+            const payVal = parseFloat(document.getElementById('payAmountInp').value);
+            if(!payVal || payVal <= 0 || payVal > activeCust.due) {
+                alert("Please enter a valid amount (not more than current due).");
+                return;
+            }
+
+            const newDue = activeCust.due - payVal;
+            
+            try {
+                // Update Customer Due
+                await set(ref(db, `customers/${activeCust.uid}/due`), newDue);
+                
+                // Log the payment in sales/transactions (Optional but recommended)
+                await push(ref(db, 'sales'), {
+                    customerId: activeCust.uid,
+                    customerName: activeCust.name,
+                    total: 0,
+                    paid: payVal,
+                    due: -payVal, // Negative due means payment received
+                    date: new Date().toLocaleString() + " (Credit Collection)",
+                    items: [{name: "Credit Payment Received", qty: 1, price: 0}]
+                });
+
+                alert("Payment Updated Successfully!");
+                closeM();
+            } catch (err) {
+                alert("Error updating payment!");
+            }
+        };
+    </script>
+</body>
+</html>

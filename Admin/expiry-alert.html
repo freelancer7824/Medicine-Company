@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expiry Alerts - Onyx Pharma</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --primary: #f85606; /* মেইন অরেঞ্জ থিম */
+            --bg: #eff0f5;
+            --card: #ffffff;
+            --border: #e0e0e0;
+            --text-main: #212121;
+            --text-dim: #757575;
+            --danger: #d32f2f;
+            --warning: #f57c00;
+            --success: #2e7d32;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body { 
+            background: var(--bg); 
+            color: var(--text-main); 
+            font-family: 'Inter', 'Roboto', sans-serif; 
+            padding: 20px; 
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 15px;
+            background: var(--card);
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .header h2 { color: var(--primary); font-size: 22px; }
+
+        .alert-box {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .expiry-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .expiry-card:hover {
+            border-color: var(--primary);
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(248, 86, 6, 0.1);
+        }
+
+        .info h4 { margin: 0; font-size: 17px; color: #000; font-weight: 700; }
+        .info p { margin: 4px 0 0; font-size: 13px; color: var(--text-dim); }
+        .info .date-text { color: var(--text-main); margin-top: 8px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+
+        .status-badge {
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* স্ট্যাটাস কালার কোড */
+        .expired { background: rgba(211, 47, 47, 0.1); color: var(--danger); border: 1px solid var(--danger); }
+        .upcoming { background: rgba(245, 124, 0, 0.1); color: var(--warning); border: 1px solid var(--warning); }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-dim);
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px dashed var(--border);
+        }
+
+        @media (max-width: 600px) {
+            .expiry-card { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .header { flex-direction: column; align-items: flex-start; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Expiry Alerts</h2>
+            <p style="color: var(--text-dim); font-size: 13px;">Critical monitoring for medical inventory</p>
+        </div>
+        <div id="summary-count" style="font-weight: 800; color: var(--danger); background: rgba(211, 47, 47, 0.05); padding: 8px 15px; border-radius: 20px;">
+            Scanning...
+        </div>
+    </div>
+
+    <div class="alert-box" id="expiryList">
+        <div class="empty-state">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 30px; margin-bottom: 10px;"></i>
+            <br>Scanning inventory for expired items...
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+            databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+            projectId: "social-media-5e6c8",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        onValue(ref(db, 'inventory'), (snap) => {
+            const list = document.getElementById('expiryList');
+            list.innerHTML = "";
+            let count = 0;
+            const today = new Date();
+            const nextMonth = new Date();
+            nextMonth.setDate(today.getDate() + 30); // পরবর্তী ৩০ দিন
+
+            snap.forEach(child => {
+                const item = child.val();
+                if (!item.expiry) return;
+
+                const expDate = new Date(item.expiry);
+                let status = "";
+                let statusClass = "";
+
+                if (expDate < today) {
+                    status = "Already Expired";
+                    statusClass = "expired";
+                } else if (expDate <= nextMonth) {
+                    status = "Expiring Soon";
+                    statusClass = "upcoming";
+                }
+
+                if (status !== "") {
+                    count++;
+                    const card = `
+                        <div class="expiry-card">
+                            <div class="info">
+                                <h4>${item.name}</h4>
+                                <p>Generic: ${item.generic || 'N/A'} | Rack: ${item.rack || 'Unassigned'}</p>
+                                <div class="date-text">
+                                    <i class="fa-solid fa-calendar-day" style="color: var(--primary)"></i> 
+                                    Expiry Date: ${item.expiry}
+                                </div>
+                            </div>
+                            <div class="status">
+                                <span class="status-badge ${statusClass}">${status}</span>
+                            </div>
+                        </div>
+                    `;
+                    list.innerHTML += card;
+                }
+            });
+
+            document.getElementById('summary-count').innerText = count + " Critical Alerts";
+            
+            if (count === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-circle-check" style="font-size: 50px; color: var(--success); margin-bottom: 15px;"></i>
+                        <br><b style="color: var(--text-main)">Everything Looks Good!</b><br>
+                        All medicines are within safe date limits.
+                    </div>`;
+            }
+        });
+    </script>
+</body>
+</html>

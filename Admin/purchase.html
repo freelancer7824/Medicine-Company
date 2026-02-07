@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Order - Onyx Pharma</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --primary: #f85606; --bg: #eff0f5; --card: #ffffff;
+            --text: #212121; --dim: #757575; --border: #ced4da;
+            --err: #d32f2f; --success: #2e7d32;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Roboto', sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 15px; line-height: 1.6; }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        /* Header Section */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .header h2 { font-size: 24px; font-weight: 800; color: var(--text); border-left: 5px solid var(--primary); padding-left: 15px; }
+        .po-number { background: #fff; padding: 8px 15px; border-radius: 8px; border: 1px solid var(--border); font-weight: 700; color: var(--primary); }
+
+        /* Main Grid Layout */
+        .order-grid { display: grid; grid-template-columns: 1fr 380px; gap: 20px; }
+
+        .card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 20px; }
+        .card-header { background: #f8f9fa; padding: 15px 20px; border-bottom: 1px solid var(--border); font-weight: 700; color: var(--dim); display: flex; align-items: center; gap: 10px; }
+        .card-body { padding: 20px; }
+
+        /* Form Styling */
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 10px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; position: relative; margin-bottom: 15px; }
+        label { font-size: 13px; font-weight: 700; color: var(--text); text-transform: uppercase; }
+        
+        input, select { padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; outline: none; transition: 0.2s; width: 100%; }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(248, 86, 6, 0.1); }
+        
+        input.invalid { border-color: var(--err) !important; background: #fff8f8; }
+        .error-txt { color: var(--err); font-size: 11px; font-weight: bold; display: none; }
+
+        /* Searchable Supplier */
+        .search-container { position: relative; }
+        .sup-list { 
+            position: absolute; width: 100%; max-height: 180px; overflow-y: auto; 
+            background: #fff; border: 1px solid var(--border); border-radius: 0 0 8px 8px;
+            z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: none;
+        }
+        .sup-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .sup-item:hover { background: #fef1eb; color: var(--primary); }
+
+        /* Table */
+        .table-responsive { overflow-x: auto; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        th { text-align: left; padding: 12px; background: #f1f3f5; font-size: 13px; color: var(--dim); }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+
+        .row-total { font-weight: 700; color: #000; }
+        .btn-add-row { background: #e9ecef; border: 2px dashed var(--border); width: 100%; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 700; margin-top: 15px; color: var(--dim); }
+
+        /* Partial Section */
+        #partialSection { background: #fff9f6; padding: 15px; border-radius: 10px; border: 1px dashed var(--primary); display: none; margin-top: 10px; }
+
+        /* Summary Panel */
+        .summary-box { display: flex; flex-direction: column; gap: 15px; }
+        .sum-item { display: flex; justify-content: space-between; font-size: 15px; font-weight: 500; }
+        .total-pay { border-top: 2px solid #eee; padding-top: 15px; margin-top: 5px; color: var(--primary); font-size: 22px; font-weight: 900; }
+
+        .btn-submit { background: var(--primary); color: #fff; border: none; width: 100%; padding: 18px; border-radius: 10px; font-size: 17px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+
+        @media (max-width: 992px) { .order-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2><i class="fa-solid fa-cart-shopping" style="color: var(--primary);"></i> Purchase Order</h2>
+        <div class="po-number" id="po-display">PO-000000</div>
+    </div>
+
+    <div class="order-grid">
+        <div class="card">
+            <div class="card-header"><i class="fa-solid fa-info-circle"></i> Basic Information & Items</div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Select Supplier *</label>
+                        <div class="search-container">
+                            <input type="text" id="supInput" placeholder="Type supplier name..." onfocus="showSupList()" oninput="filterSuppliers()">
+                            <input type="hidden" id="selectedSupId">
+                            <div id="supList" class="sup-list"></div>
+                        </div>
+                        <span class="error-txt" id="err-sup">Please select a supplier!</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Order Date *</label>
+                        <input type="date" id="orderDate">
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="poTable">
+                        <thead>
+                            <tr>
+                                <th>Medicine Name *</th>
+                                <th style="width: 100px;">Qty *</th>
+                                <th style="width: 140px;">Price *</th>
+                                <th style="width: 140px;">Total</th>
+                                <th style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="poBody"></tbody>
+                    </table>
+                </div>
+                <button class="btn-add-row" onclick="addNewRow()"><i class="fa-solid fa-plus"></i> Add Item</button>
+            </div>
+        </div>
+
+        <div class="summary-panel">
+            <div class="card">
+                <div class="card-header"><i class="fa-solid fa-receipt"></i> Order Summary</div>
+                <div class="card-body">
+                    <div class="summary-box">
+                        <div class="sum-item"><span>Sub-total</span><span id="subTotal">৳ 0</span></div>
+                        
+                        <div class="form-group">
+                            <label>Discount (৳)</label>
+                            <input type="number" id="discount" value="0" oninput="calculateFinal()">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Payment Status *</label>
+                            <select id="payStatus" onchange="togglePayMode()">
+                                <option value="Paid">Full Paid</option>
+                                <option value="Partial">Partial Payment</option>
+                                <option value="Due">Full Due</option>
+                            </select>
+                        </div>
+
+                        <div id="partialSection">
+                            <div class="form-group">
+                                <label>Cash Paid (৳) *</label>
+                                <input type="number" id="cashPaid" value="0" oninput="calculateFinal()">
+                            </div>
+                            <div class="sum-item" style="color: var(--err); font-weight: 700;">
+                                <span>Remaining Due:</span>
+                                <span id="dueLabel">৳ 0</span>
+                            </div>
+                        </div>
+
+                        <div class="sum-item total-pay">
+                            <span>Total Payable:</span>
+                            <span id="grandTotal">৳ 0</span>
+                        </div>
+                        <button class="btn-submit" onclick="submitOrder()">Confirm Purchase</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+        databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+        projectId: "social-media-5e6c8",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    document.getElementById('orderDate').valueAsDate = new Date();
+    document.getElementById('po-display').innerText = "PO-" + Date.now().toString().slice(-6);
+
+    // 1. Supplier Load
+    onValue(ref(db, 'suppliers'), (snap) => {
+        const list = document.getElementById('supList');
+        list.innerHTML = '';
+        snap.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'sup-item';
+            div.innerText = s.val().company;
+            div.onclick = () => {
+                document.getElementById('supInput').value = s.val().company;
+                document.getElementById('selectedSupId').value = s.key;
+                list.style.display = 'none';
+            };
+            list.appendChild(div);
+        });
+    });
+
+    window.showSupList = () => document.getElementById('supList').style.display = 'block';
+    window.filterSuppliers = () => {
+        const val = document.getElementById('supInput').value.toUpperCase();
+        document.querySelectorAll('.sup-item').forEach(i => i.style.display = i.innerText.toUpperCase().includes(val) ? '' : 'none');
+    };
+
+    // 2. Table Rows
+    window.addNewRow = () => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" class="in-name"></td>
+            <td><input type="number" value="1" class="in-qty" oninput="calculateFinal()"></td>
+            <td><input type="number" class="in-price" oninput="calculateFinal()"></td>
+            <td class="row-total">৳ 0</td>
+            <td><i class="fa-solid fa-trash" style="color:red; cursor:pointer" onclick="this.parentElement.parentElement.remove(); calculateFinal()"></i></td>
+        `;
+        document.getElementById('poBody').appendChild(tr);
+    };
+
+    // 3. Toggle Partial
+    window.togglePayMode = () => {
+        const status = document.getElementById('payStatus').value;
+        document.getElementById('partialSection').style.display = (status === 'Partial') ? 'block' : 'none';
+        calculateFinal();
+    };
+
+    // 4. Calculations
+    window.calculateFinal = () => {
+        let sub = 0;
+        document.querySelectorAll('#poBody tr').forEach(row => {
+            const q = row.querySelector('.in-qty').value || 0;
+            const p = row.querySelector('.in-price').value || 0;
+            const total = q * p;
+            row.querySelector('.row-total').innerText = "৳ " + total.toLocaleString();
+            sub += total;
+        });
+
+        const disc = parseFloat(document.getElementById('discount').value) || 0;
+        const grandTotal = sub - disc;
+        document.getElementById('subTotal').innerText = "৳ " + sub.toLocaleString();
+        document.getElementById('grandTotal').innerText = "৳ " + grandTotal.toLocaleString();
+
+        // Due Calculation
+        const status = document.getElementById('payStatus').value;
+        if(status === 'Partial'){
+            const cash = parseFloat(document.getElementById('cashPaid').value) || 0;
+            document.getElementById('dueLabel').innerText = "৳ " + (grandTotal - cash).toLocaleString();
+        }
+    };
+
+    // 5. Submit
+    window.submitOrder = async () => {
+        const supId = document.getElementById('selectedSupId').value;
+        const items = [];
+        document.querySelectorAll('#poBody tr').forEach(row => {
+            items.push({ 
+                product: row.querySelector('.in-name').value, 
+                qty: row.querySelector('.in-qty').value, 
+                price: row.querySelector('.in-price').value 
+            });
+        });
+
+        if(!supId || items.length === 0) return alert("Fill all details!");
+
+        const grandTotal = parseFloat(document.getElementById('grandTotal').innerText.replace(/[৳,]/g, ''));
+        const status = document.getElementById('payStatus').value;
+        
+        let paid = 0;
+        if(status === 'Paid') paid = grandTotal;
+        else if(status === 'Partial') paid = parseFloat(document.getElementById('cashPaid').value) || 0;
+
+        const poData = {
+            poId: document.getElementById('po-display').innerText,
+            supplierId: supId,
+            supplierName: document.getElementById('supInput').value,
+            date: document.getElementById('orderDate').value,
+            items: items,
+            totalPayable: grandTotal,
+            paidAmount: paid,
+            dueAmount: grandTotal - paid,
+            status: status,
+            timestamp: Date.now()
+        };
+
+        try {
+            await set(push(ref(db, 'purchase_orders')), poData);
+            alert("Order Confirmed!");
+            location.reload();
+        } catch (e) { alert(e.message); }
+    };
+
+    addNewRow();
+</script>
+</body>
+</html>

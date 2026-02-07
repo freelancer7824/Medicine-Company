@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Low Stock Alerts - Onyx Pharma</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --primary: #f85606;
+            --bg: #eff0f5;
+            --card: #ffffff;
+            --border: #e0e0e0;
+            --text-main: #212121;
+            --text-dim: #757575;
+            --danger: #d32f2f;
+            --warning: #f57c00;
+            --success: #2e7d32;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body { 
+            background: var(--bg); 
+            color: var(--text-main); 
+            font-family: 'Inter', 'Segoe UI', sans-serif; 
+            padding: 20px; 
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            background: var(--card);
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--warning);
+        }
+
+        .header h2 { color: var(--text-main); font-size: 22px; font-weight: 800; }
+        .header h2 i { margin-right: 8px; }
+
+        .stock-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .stock-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: 0.3s ease;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .stock-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        }
+
+        .medicine-name { font-size: 19px; font-weight: 800; color: #000; }
+        .medicine-info { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+        .medicine-info i { color: var(--primary); width: 18px; }
+
+        .stock-level-container {
+            margin-top: 10px;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .qty-badge {
+            font-size: 12px;
+            font-weight: 800;
+            padding: 5px 12px;
+            border-radius: 20px;
+            color: white;
+        }
+
+        /* Status Colors */
+        .critical-text { color: var(--danger); font-weight: 700; }
+        .warning-text { color: var(--warning); font-weight: 700; }
+        
+        .bg-critical { background: var(--danger); }
+        .bg-warning { background: var(--warning); }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            grid-column: 1 / -1;
+            background: var(--card);
+            border-radius: 16px;
+            border: 2px dashed var(--border);
+        }
+
+        #item-count {
+            font-weight: 700;
+            font-size: 13px;
+            background: rgba(245, 124, 0, 0.1);
+            color: var(--warning);
+            padding: 8px 18px;
+            border-radius: 30px;
+        }
+
+        @media (max-width: 600px) {
+            .header { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .stock-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <h2><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i> Low Stock Alerts</h2>
+            <p style="color: var(--text-dim); font-size: 13px;">Inventory items below minimum threshold</p>
+        </div>
+        <div id="item-count">Scanning Inventory...</div>
+    </div>
+
+    <div class="stock-grid" id="stockList">
+        <div class="empty-state">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 30px; color: var(--primary);"></i>
+            <p style="margin-top: 15px;">Analyzing stock levels...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+            databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+            projectId: "social-media-5e6c8",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const LOW_STOCK_LIMIT = 10; 
+
+        onValue(ref(db, 'inventory'), (snap) => {
+            const list = document.getElementById('stockList');
+            list.innerHTML = "";
+            let lowItems = 0;
+
+            snap.forEach(child => {
+                const item = child.val();
+                const stock = parseInt(item.stock) || 0;
+
+                if (stock <= LOW_STOCK_LIMIT) {
+                    lowItems++;
+                    
+                    const isCritical = stock <= 3;
+                    const textClass = isCritical ? 'critical-text' : 'warning-text';
+                    const bgClass = isCritical ? 'bg-critical' : 'bg-warning';
+                    const progressWidth = Math.max((stock / LOW_STOCK_LIMIT) * 100, 5); // আংশিক কালার দেখানোর জন্য
+
+                    const card = `
+                        <div class="stock-card">
+                            <div class="medicine-name">${item.name}</div>
+                            <div class="medicine-info">
+                                <p><i class="fa-solid fa-dna"></i> <b>Generic:</b> ${item.generic || 'N/A'}</p>
+                                <p><i class="fa-solid fa-box-archive"></i> <b>Location:</b> Rack ${item.rack || 'Not Assigned'}</p>
+                            </div>
+                            
+                            <div class="stock-level-container">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:12px;">
+                                    <span class="${textClass}">${isCritical ? '● CRITICAL' : '● LOW STOCK'}</span>
+                                    <span class="qty-badge ${bgClass}">${stock} Pcs Left</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill ${bgClass}" style="width: ${progressWidth}%"></div>
+                                </div>
+                                <p style="font-size: 11px; color: var(--text-dim); text-align: right; margin-top: 5px;">
+                                    Threshold: ${LOW_STOCK_LIMIT} units
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    list.innerHTML += card;
+                }
+            });
+
+            document.getElementById('item-count').innerText = lowItems + " Items Need Restock";
+
+            if (lowItems === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-circle-check" style="font-size: 60px; color: var(--success); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--text-main); font-size: 20px;">Stock is Healthy</h3>
+                        <p style="color: var(--text-dim); margin-top: 10px;">All medicines are currently above the safety limit.</p>
+                    </div>`;
+            }
+        });
+    </script>
+</body>
+</html>

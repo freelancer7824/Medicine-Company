@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Ledger - Onyx Pharma</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #f85606;
+            --bg: #eff0f5;
+            --card: #ffffff;
+            --text: #212121;
+            --danger: #d32f2f;
+            --success: #2e7d32;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 10px; line-height: 1.6; }
+
+        /* --- Header & Search (Responsive) --- */
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        .header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px; background: #fff; border-radius: 12px; margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .header h3 { font-size: 18px; color: var(--primary); }
+        .back-btn { text-decoration: none; color: #555; font-weight: bold; font-size: 14px; }
+
+        .search-box { position: relative; margin-bottom: 15px; }
+        .search-box input { 
+            width: 100%; padding: 14px 45px; border-radius: 12px; border: 1.5px solid transparent; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); outline: none; font-size: 16px; transition: 0.3s;
+        }
+        .search-box input:focus { border-color: var(--primary); background: #fff; }
+        .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #888; }
+
+        /* --- Responsive Customer Cards --- */
+        .customer-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        
+        @media (min-width: 600px) {
+            .customer-list { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .customer-card { 
+            background: var(--card); padding: 18px; border-radius: 15px; 
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; transition: 0.3s; border: 1px solid #eee;
+        }
+        .customer-card:active { transform: scale(0.97); }
+        .customer-card:hover { border-color: var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+
+        .cust-info h4 { font-size: 16px; color: #000; margin-bottom: 4px; }
+        .cust-info p { font-size: 13px; color: #666; display: flex; align-items: center; gap: 5px; }
+        
+        .cust-due { text-align: right; }
+        .due-amount { color: var(--danger); font-weight: 800; font-size: 16px; display: block; }
+        .due-label { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* --- Full Responsive History Modal --- */
+        .modal { 
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); 
+            z-index: 2000; justify-content: center; align-items: flex-end; /* Mobile Bottom Sheet */
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-content { 
+            background: #fff; width: 100%; max-width: 600px; height: 90vh; 
+            border-radius: 25px 25px 0 0; padding: 25px; overflow-y: auto; 
+            position: relative; animation: slideUp 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        /* Desktop view for Modal */
+        @media (min-width: 768px) {
+            .modal { align-items: center; }
+            .modal-content { height: 80vh; border-radius: 20px; }
+        }
+
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .stat-card { background: #fdf2ed; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #fce3d7; }
+        .stat-card b { font-size: 20px; color: var(--primary); display: block; }
+        .stat-card span { font-size: 12px; color: #666; font-weight: 600; }
+
+        .history-list { margin-top: 10px; }
+        .history-item { 
+            background: #fafafa; border-radius: 12px; padding: 15px; 
+            margin-bottom: 12px; border: 1px solid #f0f0f0;
+        }
+        .history-date { font-size: 12px; color: var(--primary); font-weight: 700; margin-bottom: 8px; display: block; }
+        
+        .history-flex { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .history-meds { font-size: 14px; color: #333; flex: 1; font-weight: 500; }
+        .history-price { text-align: right; min-width: 80px; }
+        .history-price b { font-size: 15px; color: #000; }
+        .pay-status { font-size: 11px; margin-top: 4px; display: block; }
+
+        .close-bar { width: 50px; height: 5px; background: #ddd; border-radius: 10px; margin: -10px auto 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <a href="javascript:history.back()" class="back-btn"><i class="fa-solid fa-chevron-left"></i> Back</a>
+            <h3>Customer Directory</h3>
+            <div style="width: 40px;"></div> </div>
+
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="custSearch" placeholder="Search by name or phone...">
+        </div>
+
+        <div class="customer-list" id="customerListUI">
+            <p style="text-align: center; color: #888;">Fetching customers...</p>
+        </div>
+    </div>
+
+    <div class="modal" id="historyModal">
+        <div class="modal-content">
+            <div class="close-bar" onclick="closeHistory()"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 id="modalCustName" style="font-size: 20px;">Customer History</h2>
+                <i class="fa-solid fa-circle-xmark" onclick="closeHistory()" style="font-size: 24px; color: #ccc; cursor: pointer;"></i>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card"><b id="statTotalBuy">৳0</b><span>Total Purchase</span></div>
+                <div class="stat-card" style="background: #fff0f0; border-color: #ffdada;">
+                    <b id="statTotalDue" style="color: var(--danger);">৳0</b>
+                    <span>Total Due</span>
+                </div>
+            </div>
+
+            <div class="history-list" id="historyItemsUI">
+                </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+            databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+            projectId: "social-media-5e6c8",
+            appId: "1:897473713729:web:7ba552ed4c1be8754418c0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let allCustomers = [];
+        let allSales = [];
+
+        // Fetch Sales & Customers
+        onValue(ref(db, 'sales'), (snap) => {
+            allSales = [];
+            snap.forEach(s => { allSales.push(s.val()); });
+        });
+
+        onValue(ref(db, 'customers'), (snap) => {
+            allCustomers = [];
+            snap.forEach(c => { 
+                let data = c.val(); 
+                data.uid = c.key; 
+                allCustomers.push(data); 
+            });
+            renderCustomers(allCustomers);
+        });
+
+        function renderCustomers(list) {
+            const container = document.getElementById('customerListUI');
+            container.innerHTML = "";
+            if(list.length === 0) {
+                container.innerHTML = "<p style='text-align:center; grid-column: 1/-1;'>No customers found.</p>";
+                return;
+            }
+            list.forEach(c => {
+                const card = document.createElement('div');
+                card.className = 'customer-card';
+                card.onclick = () => showHistory(c);
+                card.innerHTML = `
+                    <div class="cust-info">
+                        <h4>${c.name}</h4>
+                        <p><i class="fa-solid fa-phone"></i> ${c.phone}</p>
+                    </div>
+                    <div class="cust-due">
+                        <span class="due-label">Current Due</span>
+                        <span class="due-amount">৳${c.due || 0}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Search Filter
+        document.getElementById('custSearch').oninput = (e) => {
+            const val = e.target.value.toLowerCase();
+            const filtered = allCustomers.filter(c => 
+                c.name.toLowerCase().includes(val) || c.phone.includes(val)
+            );
+            renderCustomers(filtered);
+        };
+
+        window.showHistory = (cust) => {
+            document.getElementById('modalCustName').innerText = cust.name;
+            document.getElementById('statTotalDue').innerText = "৳" + (cust.due || 0);
+            
+            const historyContainer = document.getElementById('historyItemsUI');
+            historyContainer.innerHTML = "";
+            
+            // Match sales by Name or UID
+            const mySales = allSales.filter(s => s.customerName === cust.name || s.customerId === cust.uid);
+            
+            let totalPurchase = 0;
+            mySales.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(sale => {
+                totalPurchase += (sale.total || 0);
+                const meds = sale.items.map(i => `${i.name} x ${i.qty}`).join(", ");
+                
+                historyContainer.innerHTML += `
+                    <div class="history-item">
+                        <span class="history-date"><i class="fa-regular fa-calendar-check"></i> ${sale.date}</span>
+                        <div class="history-flex">
+                            <div class="history-meds">${meds}</div>
+                            <div class="history-price">
+                                <b>৳${sale.total}</b>
+                                <span class="pay-status" style="color:${sale.due > 0 ? 'var(--danger)' : 'var(--success)'}">
+                                    ${sale.due > 0 ? '৳'+sale.due+' Due' : 'Paid'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if(mySales.length === 0) historyContainer.innerHTML = "<p style='text-align:center; color:#999; margin-top:20px;'>No purchase history found.</p>";
+
+            document.getElementById('statTotalBuy').innerText = "৳" + totalPurchase;
+            document.getElementById('historyModal').style.display = 'flex';
+        };
+
+        window.closeHistory = () => {
+            document.getElementById('historyModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = (event) => {
+            const modal = document.getElementById('historyModal');
+            if (event.target == modal) modal.style.display = "none";
+        }
+    </script>
+</body>
+</html>

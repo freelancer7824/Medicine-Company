@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category & Manufacturer Setup | Onyx Pharma</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --primary: #f85606;
+            --bg: #eff0f5;
+            --card: #ffffff;
+            --text-main: #212121;
+            --border: #e0e0e0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); color: var(--text-main); padding: 20px; }
+
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        /* --- Tabs Logic --- */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { 
+            padding: 12px 25px; background: #ddd; border: none; border-radius: 12px; 
+            cursor: pointer; font-weight: 700; transition: 0.3s; color: #555;
+        }
+        .tab-btn.active { background: var(--primary); color: white; }
+
+        .setup-card { 
+            background: white; padding: 25px; border-radius: 20px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px;
+        }
+
+        .input-group { display: flex; gap: 10px; margin-top: 10px; }
+        input { 
+            flex: 1; padding: 14px; border: 2px solid #f0f0f0; border-radius: 12px; 
+            outline: none; font-weight: 600; 
+        }
+        input:focus { border-color: var(--primary); }
+
+        .add-btn { 
+            background: var(--primary); color: white; border: none; padding: 0 25px; 
+            border-radius: 12px; font-weight: 700; cursor: pointer; 
+        }
+
+        /* --- List Table --- */
+        .data-table { 
+            background: white; border-radius: 20px; overflow: hidden; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 13px; color: #757575; }
+        td { padding: 15px; border-top: 1px solid #eee; font-weight: 600; }
+        
+        .delete-btn { 
+            color: #ff4757; background: #fff1f2; border: none; padding: 8px 12px; 
+            border-radius: 8px; cursor: pointer; transition: 0.2s;
+        }
+        .delete-btn:hover { background: #ff4757; color: white; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 style="margin-bottom: 20px; color: var(--primary);">
+        <i class="fa-solid fa-gears"></i> Masters Setup
+    </h2>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('category')">Medicine Categories</button>
+        <button class="tab-btn" onclick="switchTab('manufacturer')">Manufacturers</button>
+    </div>
+
+    <div id="categorySection">
+        <div class="setup-card">
+            <label style="font-size: 12px; font-weight: 800; color: #757575;">ADD NEW CATEGORY</label>
+            <div class="input-group">
+                <input type="text" id="catInput" placeholder="e.g. Tablet, Syrup, Injection...">
+                <button class="add-btn" onclick="saveData('categories', 'catInput')">SAVE</button>
+            </div>
+        </div>
+        <div class="data-table">
+            <table>
+                <thead><tr><th>SL</th><th>Category Name</th><th width="100px">Action</th></tr></thead>
+                <tbody id="catList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="manufacturerSection" class="hidden">
+        <div class="setup-card">
+            <label style="font-size: 12px; font-weight: 800; color: #757575;">ADD NEW MANUFACTURER</label>
+            <div class="input-group">
+                <input type="text" id="mfgInput" placeholder="e.g. Square Pharma, Incepta...">
+                <button class="add-btn" onclick="saveData('manufacturers', 'mfgInput')">SAVE</button>
+            </div>
+        </div>
+        <div class="data-table">
+            <table>
+                <thead><tr><th>SL</th><th>Company Name</th><th width="100px">Action</th></tr></thead>
+                <tbody id="mfgList"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+        projectId: "social-media-5e6c8",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Save Logic
+    window.saveData = (path, inputId) => {
+        const val = document.getElementById(inputId).value.trim();
+        if(!val) return alert("Please enter a name");
+        push(ref(db, path), { name: val }).then(() => {
+            document.getElementById(inputId).value = "";
+        });
+    };
+
+    // Load Data
+    function loadList(path, elementId) {
+        onValue(ref(db, path), (snap) => {
+            const list = document.getElementById(elementId);
+            list.innerHTML = "";
+            let i = 1;
+            snap.forEach(child => {
+                list.innerHTML += `
+                    <tr>
+                        <td>${i++}</td>
+                        <td>${child.val().name}</td>
+                        <td><button class="delete-btn" onclick="deleteItem('${path}', '${child.key}')"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>`;
+            });
+        });
+    }
+
+    window.deleteItem = (path, id) => {
+        if(confirm("Are you sure?")) remove(ref(db, `${path}/${id}`));
+    };
+
+    loadList('categories', 'catList');
+    loadList('manufacturers', 'mfgList');
+
+    // Tab Switching
+    window.switchTab = (type) => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        if(type === 'category') {
+            document.getElementById('categorySection').classList.remove('hidden');
+            document.getElementById('manufacturerSection').classList.add('hidden');
+        } else {
+            document.getElementById('categorySection').classList.add('hidden');
+            document.getElementById('manufacturerSection').classList.remove('hidden');
+        }
+    };
+</script>
+</body>
+</html>
