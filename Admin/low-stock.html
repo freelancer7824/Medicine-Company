@@ -3,221 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Low Stock Alerts - Onyx Pharma</title>
+    <title>Low Stock Inventory - Onyx Pharma</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         :root {
-            --primary: #f85606;
-            --bg: #eff0f5;
-            --card: #ffffff;
-            --border: #e0e0e0;
-            --text-main: #212121;
-            --text-dim: #757575;
             --danger: #d32f2f;
             --warning: #f57c00;
-            --success: #2e7d32;
+            --bg: #eff0f5;
+            --card: #ffffff;
+            --primary: #f85606;
+            --generic: #0288d1;
+            --cat: #607d8b;
         }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); padding: 15px; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .container { max-width: 900px; margin: 0 auto; }
 
-        body { 
-            background: var(--bg); 
-            color: var(--text-main); 
-            font-family: 'Inter', 'Segoe UI', sans-serif; 
-            padding: 20px; 
+        /* Filter Section */
+        .filter-section {
+            background: white; padding: 20px; border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px;
+            position: sticky; top: 10px; z-index: 100;
         }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            background: var(--card);
-            padding: 15px 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            border-left: 5px solid var(--warning);
-        }
-
-        .header h2 { color: var(--text-main); font-size: 22px; font-weight: 800; }
-        .header h2 i { margin-right: 8px; }
-
-        .stock-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-        }
-
-        .stock-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            transition: 0.3s ease;
-            position: relative;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-
-        .stock-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-        }
-
-        .medicine-name { font-size: 19px; font-weight: 800; color: #000; }
-        .medicine-info { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
-        .medicine-info i { color: var(--primary); width: 18px; }
-
-        .stock-level-container {
-            margin-top: 10px;
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 12px;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 10px;
-            background: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            border-radius: 10px;
-            transition: width 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .qty-badge {
-            font-size: 12px;
-            font-weight: 800;
-            padding: 5px 12px;
-            border-radius: 20px;
-            color: white;
-        }
-
-        /* Status Colors */
-        .critical-text { color: var(--danger); font-weight: 700; }
-        .warning-text { color: var(--warning); font-weight: 700; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .header-top h2 { color: var(--danger); font-size: 20px; }
         
-        .bg-critical { background: var(--danger); }
-        .bg-warning { background: var(--warning); }
+        .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        .search-box { position: relative; }
+        .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888; }
+        .search-box input { width: 100%; padding: 10px 10px 10px 35px; border: 1.5px solid #eee; border-radius: 8px; outline: none; }
 
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-            grid-column: 1 / -1;
-            background: var(--card);
-            border-radius: 16px;
-            border: 2px dashed var(--border);
-        }
+        select { padding: 10px; border: 1.5px solid #eee; border-radius: 8px; outline: none; cursor: pointer; }
 
-        #item-count {
-            font-weight: 700;
-            font-size: 13px;
-            background: rgba(245, 124, 0, 0.1);
-            color: var(--warning);
-            padding: 8px 18px;
-            border-radius: 30px;
+        /* Stock Card */
+        .stock-item {
+            background: white; padding: 18px; border-radius: 12px; margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02); border-left: 6px solid #ddd;
         }
+        .stock-item.critical { border-left-color: var(--danger); }
+        
+        .med-details h4 { font-size: 18px; color: #000; margin-bottom: 5px; text-transform: uppercase; }
+        .med-generic { color: var(--generic); font-size: 12px; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px; }
+        
+        .info-row { display: flex; flex-wrap: wrap; gap: 8px; font-size: 11px; margin-top: 8px; }
+        .tag { padding: 3px 10px; border-radius: 4px; border: 1px solid #e0e0e0; background: #f9f9f9; font-weight: 600; }
+        .tag-cat { background: #eceff1; color: var(--cat); }
+        .tag-rack { background: #e3f2fd; color: #1565c0; }
 
-        @media (max-width: 600px) {
-            .header { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .stock-grid { grid-template-columns: 1fr; }
+        .stock-status { text-align: right; min-width: 110px; }
+        .qty-badge { 
+            padding: 6px 12px; border-radius: 8px; font-weight: 900; font-size: 16px;
+            display: inline-block; margin-bottom: 5px;
         }
+        .out-of-stock { background: #ffebee; color: var(--danger); }
+        .very-low { background: #fff3e0; color: var(--warning); }
+
+        .no-data { text-align: center; padding: 50px; color: #999; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div>
-            <h2><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i> Low Stock Alerts</h2>
-            <p style="color: var(--text-dim); font-size: 13px;">Inventory items below minimum threshold</p>
+<div class="container">
+    <div class="filter-section">
+        <div class="header-top">
+            <h2><i class="fa-solid fa-file-medical"></i> Low Stock Manager</h2>
+            <span id="itemCount" style="font-weight: bold; color: var(--primary);">0 Items</span>
         </div>
-        <div id="item-count">Scanning Inventory...</div>
+        
+        <div class="filter-grid">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="Search name or generic...">
+            </div>
+            <select id="stockFilter">
+                <option value="11">Under 10 Pcs</option>
+                <option value="6">Under 5 Pcs</option>
+                <option value="1">Out of Stock</option>
+            </select>
+        </div>
     </div>
 
-    <div class="stock-grid" id="stockList">
-        <div class="empty-state">
-            <i class="fa-solid fa-spinner fa-spin" style="font-size: 30px; color: var(--primary);"></i>
-            <p style="margin-top: 15px;">Analyzing stock levels...</p>
-        </div>
-    </div>
+    <div id="lowStockList"></div>
+</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
-            databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
-            projectId: "social-media-5e6c8",
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
+        databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
+        projectId: "social-media-5e6c8",
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-        const LOW_STOCK_LIMIT = 10; 
+    let allProducts = [];
+    const listDiv = document.getElementById('lowStockList');
+    const searchInput = document.getElementById('searchInput');
+    const stockFilter = document.getElementById('stockFilter');
+    const itemCount = document.getElementById('itemCount');
 
-        onValue(ref(db, 'inventory'), (snap) => {
-            const list = document.getElementById('stockList');
-            list.innerHTML = "";
-            let lowItems = 0;
-
-            snap.forEach(child => {
-                const item = child.val();
-                const stock = parseInt(item.stock) || 0;
-
-                if (stock <= LOW_STOCK_LIMIT) {
-                    lowItems++;
-                    
-                    const isCritical = stock <= 3;
-                    const textClass = isCritical ? 'critical-text' : 'warning-text';
-                    const bgClass = isCritical ? 'bg-critical' : 'bg-warning';
-                    const progressWidth = Math.max((stock / LOW_STOCK_LIMIT) * 100, 5); // আংশিক কালার দেখানোর জন্য
-
-                    const card = `
-                        <div class="stock-card">
-                            <div class="medicine-name">${item.name}</div>
-                            <div class="medicine-info">
-                                <p><i class="fa-solid fa-dna"></i> <b>Generic:</b> ${item.generic || 'N/A'}</p>
-                                <p><i class="fa-solid fa-box-archive"></i> <b>Location:</b> Rack ${item.rack || 'Not Assigned'}</p>
-                            </div>
-                            
-                            <div class="stock-level-container">
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:12px;">
-                                    <span class="${textClass}">${isCritical ? '● CRITICAL' : '● LOW STOCK'}</span>
-                                    <span class="qty-badge ${bgClass}">${stock} Pcs Left</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill ${bgClass}" style="width: ${progressWidth}%"></div>
-                                </div>
-                                <p style="font-size: 11px; color: var(--text-dim); text-align: right; margin-top: 5px;">
-                                    Threshold: ${LOW_STOCK_LIMIT} units
-                                </p>
-                            </div>
-                        </div>
-                    `;
-                    list.innerHTML += card;
-                }
-            });
-
-            document.getElementById('item-count').innerText = lowItems + " Items Need Restock";
-
-            if (lowItems === 0) {
-                list.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fa-solid fa-circle-check" style="font-size: 60px; color: var(--success); margin-bottom: 20px;"></i>
-                        <h3 style="color: var(--text-main); font-size: 20px;">Stock is Healthy</h3>
-                        <p style="color: var(--text-dim); margin-top: 10px;">All medicines are currently above the safety limit.</p>
-                    </div>`;
-            }
+    onValue(ref(db, 'inventory'), (snap) => {
+        allProducts = [];
+        snap.forEach(child => {
+            let p = child.val();
+            p.id = child.key;
+            allProducts.push(p);
         });
-    </script>
+        filterAndRender();
+    });
+
+    function filterAndRender() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const maxStock = parseInt(stockFilter.value);
+        
+        const filtered = allProducts.filter(p => {
+            const matchesSearch = p.name.toLowerCase().includes(searchTerm) || 
+                                 (p.generic && p.generic.toLowerCase().includes(searchTerm));
+            const matchesStock = p.stock < maxStock;
+            return matchesSearch && matchesStock;
+        });
+        renderList(filtered);
+    }
+
+    function renderList(data) {
+        listDiv.innerHTML = "";
+        itemCount.innerText = `${data.length} Items`;
+
+        if (data.length === 0) {
+            listDiv.innerHTML = `<div class="no-data"><i class="fa-solid fa-check-circle" style="color:green"></i><p>Stock is healthy!</p></div>`;
+            return;
+        }
+
+        data.forEach(p => {
+            const isZero = p.stock == 0;
+            const card = document.createElement('div');
+            card.className = `stock-item ${p.stock < 5 ? 'critical' : ''}`;
+            
+            card.innerHTML = `
+                <div class="med-details">
+                    <span class="med-generic">${p.generic || 'No Generic'}</span>
+                    <h4>${p.name}</h4>
+                    <div class="info-row">
+                        <span class="tag tag-cat"><i class="fa-solid fa-tags"></i> ${p.category || 'N/A'}</span>
+                        <span class="tag tag-rack"><i class="fa-solid fa-location-dot"></i> Rack: ${p.rack || 'N/A'}</span>
+                        <span class="tag">EXP: ${p.expiry}</span>
+                    </div>
+                </div>
+                <div class="stock-status">
+                    <div class="qty-badge ${isZero ? 'out-of-stock' : 'very-low'}">
+                        ${isZero ? 'EMPTY' : p.stock + ' Pcs'}
+                    </div>
+                    <div style="font-size:10px; font-weight:bold; color:#777;">
+                        ${isZero ? 'ORDER NOW' : 'STOCK LOW'}
+                    </div>
+                </div>
+            `;
+            listDiv.appendChild(card);
+        });
+    }
+
+    searchInput.addEventListener('input', filterAndRender);
+    stockFilter.addEventListener('change', filterAndRender);
+</script>
+
 </body>
 </html>
