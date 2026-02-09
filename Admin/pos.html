@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Onyx Pharma POS - Entry Only</title>
+    <title>Onyx Pharma POS - Retail Ready</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
     <style>
@@ -55,14 +55,11 @@
 
         .cart-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
         .remove-btn { color: var(--danger); cursor: pointer; padding: 5px; font-size: 16px; transition: 0.2s; }
-        .remove-btn:hover { transform: scale(1.2); }
 
         .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
         .btn { padding: 14px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 14px; width: 100%; }
         .btn-orange { background: var(--primary); color: #fff; }
         .btn-black { background: #1a1a1a; color: #fff; }
-
-        @media print { body { display: none !important; } }
     </style>
 </head>
 <body>
@@ -82,7 +79,8 @@
     <div class="modal-overlay" id="qtyModal">
         <div class="modal-content">
             <h3 id="qName">Quantity</h3>
-            <input type="number" id="qInput" class="input-field" style="font-size: 28px; text-align: center; color:var(--primary)" value="1" min="1">
+            <input type="number" id="qInput" class="input-field" style="font-size: 28px; text-align: center; color:var(--primary)" value="1" min="0.1" step="0.1">
+            <p id="stockAlert" style="font-size: 12px; text-align: center; color: #777; margin-top: 5px; font-weight: bold;"></p>
             <div class="btn-group">
                 <button onclick="addToCart()" class="btn btn-orange">Confirm</button>
                 <button onclick="closeM('qtyModal')" class="btn btn-black" style="background:#757575">Cancel</button>
@@ -93,6 +91,7 @@
     <div class="modal-overlay" id="cartModal">
         <div class="modal-content">
             <h3>Finalize Sale</h3>
+            
             <div style="position: relative; margin-top: 10px;">
                 <label style="font-size: 12px; font-weight: bold;">Select Customer:</label>
                 <input type="text" id="cSearch" class="input-field" style="border: 2px solid #f8560644" placeholder="Type name or phone...">
@@ -108,7 +107,7 @@
             <div style="background:#f1f2f4; padding:15px; border-radius:10px">
                 <div style="display:flex; justify-content:space-between; font-size:18px"><span>Total:</span> <b id="totalText" style="color:var(--primary)">৳0</b></div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px">
-                    <span>Cash Paid:</span> <input type="number" id="paidInput" class="input-field" style="width:130px; margin:0; padding:8px">
+                    <span>Cash Paid:</span> <input type="number" id="paidInput" class="input-field" style="width:130px; margin:0; padding:8px" step="any">
                 </div>
             </div>
             
@@ -124,7 +123,6 @@
             <h3 style="color:var(--primary)">+ New Customer</h3>
             <input type="text" id="newCustName" class="input-field" placeholder="Full Name *">
             <input type="text" id="newCustPhone" class="input-field" placeholder="Mobile Number *">
-            <input type="text" id="newCustAddr" class="input-field" placeholder="Address (Optional)">
             <div class="btn-group">
                 <button onclick="saveNewCustomer()" class="btn btn-orange">Save & Select</button>
                 <button onclick="closeM('addCustModal')" class="btn btn-black" style="background:#757575">Cancel</button>
@@ -147,83 +145,58 @@
         
         let cart = [], products = [], allCustomers = [], selProd = null, selCust = null;
 
-        // Fetch Inventory
         onValue(ref(db, 'inventory'), (snap) => {
-            products = []; snap.forEach(c => { let p = c.val(); p.id = c.key; products.push(p); });
+            products = []; snap.forEach(c => { 
+                let p = c.val(); p.id = c.key; products.push(p); 
+            });
             renderProducts(products);
+        });
+
+        onValue(ref(db, 'customers'), (snap) => {
+            allCustomers = []; snap.forEach(c => { 
+                let cu = c.val(); cu.id = c.key; allCustomers.push(cu); 
+            });
         });
 
         function renderProducts(data) {
             const grid = document.getElementById('pGrid'); grid.innerHTML = "";
-            const now = new Date();
             data.forEach(p => {
-                const isExpired = new Date(p.expiry) < now;
-                const isLow = p.stock < 10;
+                const stockVal = parseFloat(p.stock || 0);
                 const isSel = cart.some(i => i.id === p.id);
+                
+                // Low Stock logic: 5 box er niche gele Red color hobe
+                const stockColor = stockVal < 5 ? 'var(--danger)' : 'var(--success)';
                 
                 const card = document.createElement('div');
                 card.className = `product-card ${isSel ? 'selected' : ''}`;
-                card.onclick = () => { selProd = p; document.getElementById('qName').innerText=p.name; document.getElementById('qInput').value=1; document.getElementById('qtyModal').style.display='flex'; };
-                
+                card.onclick = () => { 
+                    selProd = p; 
+                    document.getElementById('qName').innerText = p.name; 
+                    document.getElementById('stockAlert').innerText = `Current Stock: ${stockVal.toFixed(1)}`;
+                    document.getElementById('qInput').value = 1; 
+                    document.getElementById('qtyModal').style.display='flex'; 
+                };
                 card.innerHTML = `
                     <h4>${p.name}</h4>
-                    <p class="info-text" style="color:${isExpired ? 'var(--danger)' : 'var(--success)'}">EXP: ${p.expiry}</p>
-                    <p class="info-text" style="color:${isLow ? 'var(--danger)' : 'var(--success)'}">Stock: ${p.stock}</p>
-                    <p class="info-text" style="color:var(--info)">Buy Price: ৳${p.buyPrice || 0}</p>
-                    <b class="price-tag">৳${p.price}</b>
+                    <p class="info-text">EXP: ${p.expiry}</p>
+                    <p class="info-text" style="color:${stockColor}; font-weight:bold;">Stock: ${stockVal.toFixed(1)}</p>
+                    <p class="info-text" style="color:var(--info)">Buy Price: ৳${parseFloat(p.buyPrice || 0).toFixed(1)}</p>
+                    <b class="price-tag">৳${parseFloat(p.price).toFixed(1)}</b>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        // Add to Cart
         window.addToCart = () => {
-            const q = parseInt(document.getElementById('qInput').value);
-            if(q > 0 && q <= selProd.stock) {
+            const q = parseFloat(document.getElementById('qInput').value);
+            if(q > 0 && q <= parseFloat(selProd.stock)) {
                 cart = cart.filter(i => i.id !== selProd.id);
                 cart.push({...selProd, qty: q});
-                updateCartUI();
+                document.getElementById('cartCount').innerText = cart.length;
+                renderProducts(products);
                 closeM('qtyModal');
             } else alert("Invalid Quantity!");
         };
-
-        // Remove from Cart
-        window.removeFromCart = (id) => {
-            cart = cart.filter(item => item.id !== id);
-            updateCartUI();
-            if(cart.length > 0) {
-                renderCartList(); 
-            } else {
-                closeM('cartModal');
-            }
-        };
-
-        function updateCartUI() {
-            document.getElementById('cartCount').innerText = cart.length;
-            renderProducts(products);
-        }
-
-        function renderCartList() {
-            const list = document.getElementById('cartItems');
-            list.innerHTML = "";
-            let total = 0;
-            cart.forEach(i => {
-                total += i.price * i.qty;
-                list.innerHTML += `
-                    <div class="cart-item-row">
-                        <div>
-                            <p style="font-weight:700; font-size:14px;">${i.name}</p>
-                            <small>৳${i.price} x ${i.qty}</small>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:15px;">
-                            <b>৳${i.price * i.qty}</b>
-                            <i class="fa-solid fa-trash-can remove-btn" onclick="removeFromCart('${i.id}')"></i>
-                        </div>
-                    </div>`;
-            });
-            document.getElementById('totalText').innerText = "৳" + total;
-            document.getElementById('paidInput').value = total;
-        }
 
         window.toggleCart = () => {
             if(!cart.length) return alert("Cart is empty!");
@@ -231,16 +204,27 @@
             renderCartList();
         };
 
-        // Search Product
-        document.getElementById('pSearch').oninput = (e) => {
-            const val = e.target.value.toLowerCase();
-            renderProducts(products.filter(p => p.name.toLowerCase().includes(val)));
-        };
+        function renderCartList() {
+            const list = document.getElementById('cartItems');
+            list.innerHTML = ""; let total = 0;
+            cart.forEach(i => {
+                const subTotal = i.price * i.qty; total += subTotal;
+                list.innerHTML += `<div class="cart-item-row">
+                    <div><p style="font-weight:700;">${i.name}</p><small>৳${parseFloat(i.price).toFixed(1)} x ${i.qty.toFixed(1)}</small></div>
+                    <div style="display:flex; align-items:center; gap:15px;"><b>৳${subTotal.toFixed(2)}</b>
+                    <i class="fa-solid fa-trash-can remove-btn" onclick="removeFromCart('${i.id}')"></i></div>
+                </div>`;
+            });
+            document.getElementById('totalText').innerText = "৳" + total.toFixed(2);
+            document.getElementById('paidInput').value = total.toFixed(2);
+        }
 
-        // Customer Logic
-        onValue(ref(db, 'customers'), (snap) => {
-            allCustomers = []; snap.forEach(c => { let cu = c.val(); cu.id = c.key; allCustomers.push(cu); });
-        });
+        window.removeFromCart = (id) => {
+            cart = cart.filter(item => item.id !== id);
+            document.getElementById('cartCount').innerText = cart.length;
+            renderProducts(products);
+            if(cart.length > 0) renderCartList(); else closeM('cartModal');
+        };
 
         const cInp = document.getElementById('cSearch');
         const cSug = document.getElementById('cSuggest');
@@ -254,7 +238,11 @@
                 match.forEach(c => {
                     const d = document.createElement('div'); d.className='suggest-opt';
                     d.innerText = `${c.name} (${c.phone})`;
-                    d.onclick = () => { cInp.value = c.name; selCust = c; cSug.style.display='none'; if(c.due) document.getElementById('prevDueDisplay').innerText = `Old Due: ৳${c.due}`; };
+                    d.onclick = () => { 
+                        cInp.value = c.name; selCust = c; 
+                        cSug.style.display='none'; 
+                        if(c.due) document.getElementById('prevDueDisplay').innerText = `Due: ৳${c.due}`;
+                    };
                     cSug.appendChild(d);
                 });
             }
@@ -266,34 +254,39 @@
         window.saveNewCustomer = async () => {
             const n = document.getElementById('newCustName').value;
             const p = document.getElementById('newCustPhone').value;
-            if(!n || !p) return alert("Name and Phone required!");
+            if(!n || !p) return alert("Required!");
             const newRef = push(ref(db, 'customers'));
             await set(newRef, { name: n, phone: p, due: 0 });
             cInp.value = n; selCust = { id: newRef.key, name: n, phone: p, due: 0 };
             closeM('addCustModal');
         };
 
-        // Process Sale
         window.processSale = async () => {
-            if(!selCust && !cInp.value.trim()) { alert("Enter/Select Customer!"); cInp.focus(); return; }
-
+            if(!selCust && !cInp.value.trim()) return alert("Select Customer!");
             const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-            const profit = cart.reduce((s, i) => s + ((i.price - (i.buyPrice || 0)) * i.qty), 0);
             const paid = parseFloat(document.getElementById('paidInput').value) || 0;
             const due = total - paid;
-            const cName = selCust ? selCust.name : cInp.value;
-            const todayDate = new Date().toLocaleDateString('en-GB');
 
-            for(let i of cart) { await set(ref(db, `inventory/${i.id}/stock`), i.stock - i.qty); }
-            if(selCust && due > 0) { await set(ref(db, `customers/${selCust.id}/due`), (selCust.due || 0) + due); }
+            for(let i of cart) { 
+                const newStock = (parseFloat(i.stock) - i.qty).toFixed(1);
+                await set(ref(db, `inventory/${i.id}/stock`), newStock); 
+            }
+            if(selCust && due > 0) { 
+                await set(ref(db, `customers/${selCust.id}/due`), (parseFloat(selCust.due || 0) + due).toFixed(2)); 
+            }
             
             await push(ref(db, 'sales'), { 
-                customerName: cName, total, paid, due, totalProfit: profit, 
-                date: todayDate, timestamp: Date.now(), items: cart 
+                customerName: selCust ? selCust.name : cInp.value, 
+                total: total.toFixed(2), paid: paid.toFixed(2), due: due.toFixed(2),
+                date: new Date().toLocaleDateString('en-GB'), timestamp: Date.now(), items: cart 
             });
 
-            alert("Sale Confirmed Successfully!"); 
-            location.reload();
+            alert("Sale Confirmed!"); location.reload();
+        };
+
+        document.getElementById('pSearch').oninput = (e) => {
+            const val = e.target.value.toLowerCase();
+            renderProducts(products.filter(p => p.name.toLowerCase().includes(val)));
         };
     </script>
 </body>
