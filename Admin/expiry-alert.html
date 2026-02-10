@@ -5,115 +5,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expiry Alerts - Onyx Pharma</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #f85606; /* মেইন অরেঞ্জ থিম */
-            --bg: #eff0f5;
+            --primary: #f85606;
+            --bg: #f4f7fa;
             --card: #ffffff;
-            --border: #e0e0e0;
-            --text-main: #212121;
-            --text-dim: #757575;
-            --danger: #d32f2f;
-            --warning: #f57c00;
-            --success: #2e7d32;
+            --border: #e2e8f0;
+            --text-main: #1a1a1a;
+            --text-dim: #64748b;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); color: var(--text-main); padding: 15px; }
 
-        body { 
-            background: var(--bg); 
-            color: var(--text-main); 
-            font-family: 'Inter', 'Roboto', sans-serif; 
-            padding: 20px; 
+        .container { max-width: 900px; margin: 0 auto; }
+
+        /* Header Style */
+        .header-section {
+            background: var(--card); padding: 25px; border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid var(--border);
+            margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .header-info h2 { color: var(--danger); font-size: 24px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        .summary-badge { 
+            background: #fef2f2; color: var(--danger); padding: 8px 18px; 
+            border-radius: 14px; font-weight: 800; font-size: 14px; border: 1px solid #fee2e2;
         }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 15px;
-            background: var(--card);
-            padding: 15px 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        .header h2 { color: var(--primary); font-size: 22px; }
-
-        .alert-box {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
+        /* Alert List */
+        .alert-box { display: flex; flex-direction: column; gap: 12px; }
 
         .expiry-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+            padding: 20px; display: grid; grid-template-columns: 1fr auto;
+            align-items: center; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        .expiry-card:hover { transform: translateY(-3px); box-shadow: 0 12px 20px rgba(0,0,0,0.05); border-color: var(--primary); }
 
-        .expiry-card:hover {
-            border-color: var(--primary);
-            transform: translateX(5px);
-            box-shadow: 0 4px 12px rgba(248, 86, 6, 0.1);
-        }
+        .med-details .generic-name { color: #0288d1; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .med-details h4 { font-size: 18px; font-weight: 800; color: #000; margin: 2px 0 6px 0; }
+        
+        .meta-tags { display: flex; gap: 8px; margin-bottom: 12px; }
+        .tag { font-size: 9px; font-weight: 700; padding: 4px 10px; border-radius: 8px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 4px; }
 
-        .info h4 { margin: 0; font-size: 17px; color: #000; font-weight: 700; }
-        .info p { margin: 4px 0 0; font-size: 13px; color: var(--text-dim); }
-        .info .date-text { color: var(--text-main); margin-top: 8px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+        .exp-info { display: flex; align-items: center; gap: 15px; font-size: 13px; font-weight: 700; color: var(--text-dim); }
+        .exp-date-box { background: #f8fafc; padding: 6px 12px; border-radius: 10px; border: 1px solid #edf2f7; color: var(--text-main); }
 
+        /* Badge Style */
         .status-badge {
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            padding: 10px 16px; border-radius: 12px; font-size: 11px; font-weight: 800;
+            text-transform: uppercase; text-align: center; min-width: 120px;
         }
-
-        /* স্ট্যাটাস কালার কোড */
-        .expired { background: rgba(211, 47, 47, 0.1); color: var(--danger); border: 1px solid var(--danger); }
-        .upcoming { background: rgba(245, 124, 0, 0.1); color: var(--warning); border: 1px solid var(--warning); }
+        .expired { background: #fee2e2; color: var(--danger); border: 1px solid #fecaca; }
+        .upcoming { background: #fff7ed; color: var(--warning); border: 1px solid #ffedd5; }
 
         .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-dim);
-            background: var(--card);
-            border-radius: 12px;
-            border: 1px dashed var(--border);
+            background: white; padding: 60px; border-radius: 24px; text-align: center;
+            border: 2px dashed var(--border); color: var(--text-dim);
         }
 
         @media (max-width: 600px) {
-            .expiry-card { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .expiry-card { grid-template-columns: 1fr; gap: 15px; }
+            .header-section { flex-direction: column; align-items: flex-start; gap: 15px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div>
-            <h2><i class="fa-solid fa-clock-rotate-left"></i> Expiry Alerts</h2>
-            <p style="color: var(--text-dim); font-size: 13px;">Critical monitoring for medical inventory</p>
+    <div class="container">
+        <div class="header-section">
+            <div class="header-info">
+                <h2><i class="fa-solid fa-calendar-circle-exclamation"></i> Expiry Alerts</h2>
+                <p style="color: var(--text-dim); font-size: 13px; font-weight: 600;">Onyx Pharma Inventory Monitoring</p>
+            </div>
+            <div id="summary-count" class="summary-badge">Scanning...</div>
         </div>
-        <div id="summary-count" style="font-weight: 800; color: var(--danger); background: rgba(211, 47, 47, 0.05); padding: 8px 15px; border-radius: 20px;">
-            Scanning...
-        </div>
-    </div>
 
-    <div class="alert-box" id="expiryList">
-        <div class="empty-state">
-            <i class="fa-solid fa-spinner fa-spin" style="font-size: 30px; margin-bottom: 10px;"></i>
-            <br>Scanning inventory for expired items...
+        <div class="alert-box" id="expiryList">
+            <div class="empty-state">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 30px; color: var(--primary); margin-bottom: 15px;"></i>
+                <p>Checking database for expiration dates...</p>
+            </div>
         </div>
     </div>
 
@@ -122,9 +98,7 @@
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
             databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
-            projectId: "social-media-5e6c8",
         };
 
         const app = initializeApp(firebaseConfig);
@@ -134,44 +108,56 @@
             const list = document.getElementById('expiryList');
             list.innerHTML = "";
             let count = 0;
+            
             const today = new Date();
-            const nextMonth = new Date();
-            nextMonth.setDate(today.getDate() + 30); // পরবর্তী ৩০ দিন
+            const next60Days = new Date();
+            next60Days.setDate(today.getDate() + 60); // পরবর্তী ৬০ দিনের অ্যালার্ট দেখাবে
 
             snap.forEach(child => {
                 const item = child.val();
                 if (!item.expiry) return;
 
-                const expDate = new Date(item.expiry);
+                // মাস এবং বছর ফরম্যাট হ্যান্ডলিং (YYYY-MM)
+                const expParts = item.expiry.split('-');
+                const expDate = new Date(expParts[0], expParts[1] - 1, 1);
+                
                 let status = "";
                 let statusClass = "";
 
-                if (expDate < today) {
-                    status = "Already Expired";
+                if (expDate < new Date(today.getFullYear(), today.getMonth(), 1)) {
+                    status = "Expired";
                     statusClass = "expired";
-                } else if (expDate <= nextMonth) {
+                } else if (expDate <= next60Days) {
                     status = "Expiring Soon";
                     statusClass = "upcoming";
                 }
 
                 if (status !== "") {
                     count++;
-                    const card = `
-                        <div class="expiry-card">
-                            <div class="info">
-                                <h4>${item.name}</h4>
-                                <p>Generic: ${item.generic || 'N/A'} | Rack: ${item.rack || 'Unassigned'}</p>
-                                <div class="date-text">
-                                    <i class="fa-solid fa-calendar-day" style="color: var(--primary)"></i> 
-                                    Expiry Date: ${item.expiry}
+                    const card = document.createElement('div');
+                    card.className = "expiry-card";
+                    card.innerHTML = `
+                        <div class="med-details">
+                            <span class="generic-name">${item.generic || 'Generic N/A'}</span>
+                            <h4>${item.name}</h4>
+                            <div class="meta-tags">
+                                <span class="tag"><i class="fa-solid fa-industry"></i> ${item.manufacturer || 'N/A'}</span>
+                                <span class="tag"><i class="fa-solid fa-tag"></i> ${item.category || 'N/A'}</span>
+                                <span class="tag"><i class="fa-solid fa-location-dot"></i> Rack: ${item.rack || 'N/A'}</span>
+                            </div>
+                            <div class="exp-info">
+                                <span>EXPIRY DATE:</span>
+                                <div class="exp-date-box">
+                                    <i class="fa-solid fa-calendar-days" style="color: var(--primary)"></i> 
+                                    ${item.expiry}
                                 </div>
                             </div>
-                            <div class="status">
-                                <span class="status-badge ${statusClass}">${status}</span>
-                            </div>
+                        </div>
+                        <div class="status">
+                            <div class="status-badge ${statusClass}">${status}</div>
                         </div>
                     `;
-                    list.innerHTML += card;
+                    list.appendChild(card);
                 }
             });
 
@@ -181,8 +167,8 @@
                 list.innerHTML = `
                     <div class="empty-state">
                         <i class="fa-solid fa-circle-check" style="font-size: 50px; color: var(--success); margin-bottom: 15px;"></i>
-                        <br><b style="color: var(--text-main)">Everything Looks Good!</b><br>
-                        All medicines are within safe date limits.
+                        <br><b style="color: var(--text-main); font-size: 18px;">All Clear!</b><br>
+                        <p style="margin-top:10px">No items are expired or expiring in the next 60 days.</p>
                     </div>`;
             }
         });
