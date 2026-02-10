@@ -3,130 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Onyx Pharma POS - Retail Ready</title>
+    <title>Onyx Pharma - Premium POS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
             --primary: #f85606;
-            --bg: #eff0f5;
+            --primary-light: #fff0e9;
+            --bg: #f4f7fa;
             --card: #ffffff;
-            --border: #e0e0e0;
-            --text: #212121;
-            --danger: #d32f2f;
-            --success: #2e7d32;
-            --info: #1976d2;
+            --text-main: #1a1a1a;
+            --text-dim: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --border: #e2e8f0;
         }
         
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg); color: var(--text); padding: 15px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); color: var(--text-main); padding-bottom: 30px; }
 
-        .header-action { 
-            display: flex; align-items: center; gap: 12px; max-width: 1200px; margin: 0 auto 15px auto; 
-            background: var(--card); padding: 10px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            position: sticky; top: 10px; z-index: 1000;
+        /* Navigation */
+        .top-nav {
+            background: var(--card); padding: 15px 20px; display: flex;
+            align-items: center; gap: 15px; position: sticky; top: 0;
+            z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px;
         }
-        .search-wrapper { position: relative; flex: 1; }
-        .search-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #757575; }
-        .search-bar { width: 100%; background: #f1f2f4; border: none; padding: 12px 40px; border-radius: 8px; outline: none; font-size: 16px; }
-        
-        .view-cart-btn { background: var(--primary); color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; position: relative; }
-        .cart-count { position: absolute; top: -5px; right: -5px; background: #000; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; border: 2px solid #fff; }
-
-        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 1200px; margin: 0 auto; }
-        .product-card { 
-            background: var(--card); padding: 15px; border-radius: 12px; cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.03); border: 2px solid transparent; transition: 0.2s;
-            position: relative;
+        .search-container { position: relative; flex: 1; }
+        .search-input { 
+            width: 100%; padding: 12px 12px 12px 45px; border-radius: 15px; 
+            border: 2px solid var(--border); background: #f8fafc; outline: none; font-weight: 600;
         }
-        .product-card.selected { border-color: var(--primary); background: #fffcfb; transform: translateY(-2px); }
-        .product-card.selected::after { content: '\f058'; font-family: 'Font Awesome 5 Free'; font-weight: 900; position: absolute; top: 10px; right: 10px; color: var(--primary); font-size: 18px; }
+        .search-container i { position: absolute; left: 15px; top: 15px; color: var(--text-dim); }
 
-        .product-card h4 { font-size: 14px; font-weight: 700; color: #000; margin-bottom: 5px; }
-        .info-text { font-size: 11px; margin-bottom: 2px; font-weight: 600; }
-        .price-tag { color: var(--success); font-size: 18px; font-weight: 900; display: block; margin-top: 8px; }
-
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
-        .modal-content { background: var(--card); width: 92%; max-width: 450px; border-radius: 15px; padding: 20px; position: relative; }
+        /* Product Grid & Clean Cards */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 15px; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
         
-        .input-field { width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 8px; margin-top: 8px; outline: none; font-weight: 600; font-size: 15px; }
-        .suggest-box { background: white; border: 1px solid #ddd; max-height: 150px; overflow-y: auto; display: none; border-radius: 8px; margin-top: 5px; position: absolute; width: 100%; z-index: 2500; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .suggest-opt { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; }
+        .product-card {
+            background: var(--card); border-radius: 20px; padding: 18px; border: 1px solid var(--border);
+            transition: 0.3s; cursor: pointer; position: relative; display: flex; flex-direction: column; gap: 8px;
+        }
+        .product-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
 
-        .cart-item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
-        .remove-btn { color: var(--danger); cursor: pointer; padding: 5px; font-size: 16px; transition: 0.2s; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .med-name { font-size: 16px; font-weight: 800; color: var(--text-main); flex: 1; }
+        
+        .badge-group { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .mini-badge { font-size: 9px; font-weight: 800; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; }
+        .bg-cat { background: #f1f5f9; color: #475569; }
+        .bg-mfg { background: #e0f2fe; color: #0369a1; }
 
-        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-        .btn { padding: 14px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 14px; width: 100%; }
-        .btn-orange { background: var(--primary); color: #fff; }
-        .btn-black { background: #1a1a1a; color: #fff; }
+        .generic-text { font-size: 11px; color: var(--text-dim); font-weight: 600; margin-top: -5px; }
+
+        .stock-info { 
+            background: #f8fafc; padding: 12px; border-radius: 12px; margin: 5px 0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .price-row { display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border); padding-top: 10px; }
+
+        /* Modals & Customer UI */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: #fff; width: 95%; max-width: 450px; border-radius: 25px; padding: 25px; max-height: 90vh; overflow-y: auto; }
+        
+        .mode-selector { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 15px 0; }
+        .mode-btn { padding: 10px; border: 2px solid var(--border); border-radius: 12px; text-align: center; cursor: pointer; font-weight: 700; font-size: 12px; }
+        .mode-btn.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+
+        .btn { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-add-cust { background: none; border: 2px dashed var(--border); color: var(--primary); margin: 10px 0; padding: 10px; font-size: 13px; }
+
+        #cSuggest { position: absolute; background: #fff; width: 100%; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 100; max-height: 200px; overflow-y: auto; border: 1px solid var(--border); }
+        .sug-item { padding: 10px 15px; border-bottom: 1px solid #f1f5f9; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .sug-item:hover { background: var(--primary-light); }
+
+        .cart-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
     </style>
 </head>
 <body>
 
-    <div class="header-action">
-        <div class="search-wrapper">
+    <div class="top-nav">
+        <div class="search-container">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="pSearch" class="search-bar" placeholder="Search medicine name...">
+            <input type="text" id="pSearch" class="search-input" placeholder="Search medicine, generic or brand...">
         </div>
-        <button class="view-cart-btn" onclick="toggleCart()">
-            <i class="fa-solid fa-cart-shopping"></i> <span id="cartCount" class="cart-count">0</span>
+        <button class="btn" style="width: auto; background: var(--primary); color: #fff;" onclick="toggleCart()">
+            <i class="fa-solid fa-cart-shopping"></i> <span id="cartCount">0</span>
         </button>
     </div>
 
-    <div class="product-grid" id="pGrid"></div>
+    <div class="container">
+        <div class="product-grid" id="pGrid"></div>
+    </div>
 
-    <div class="modal-overlay" id="qtyModal">
+    <div class="modal" id="qtyModal">
         <div class="modal-content">
-            <h3 id="qName">Quantity</h3>
-            <input type="number" id="qInput" class="input-field" style="font-size: 28px; text-align: center; color:var(--primary)" value="1" min="0.1" step="0.1">
-            <p id="stockAlert" style="font-size: 12px; text-align: center; color: #777; margin-top: 5px; font-weight: bold;"></p>
-            <div class="btn-group">
-                <button onclick="addToCart()" class="btn btn-orange">Confirm</button>
-                <button onclick="closeM('qtyModal')" class="btn btn-black" style="background:#757575">Cancel</button>
+            <h2 id="qName" style="text-align: center;">Medicine</h2>
+            <p id="qStockText" style="text-align: center; color: var(--text-dim); font-size: 12px; margin-bottom: 10px;"></p>
+            
+            <div class="mode-selector">
+                <div id="mPkt" class="mode-btn" onclick="setMode('pkt')">PACKET</div>
+                <div id="mBox" class="mode-btn active" onclick="setMode('box')">BOX</div>
+                <div id="mPc" class="mode-btn" onclick="setMode('pc')">PIECE</div>
             </div>
+
+            <label style="font-size: 11px; font-weight: 800; color: var(--text-dim);">QUANTITY</label>
+            <input type="number" id="qInput" class="search-input" style="padding-left: 15px; font-size: 24px; text-align: center; margin: 10px 0;" value="1">
+
+            <div id="discountArea" style="display: none;">
+                <label style="font-size: 11px; font-weight: 800; color: var(--danger);">PACKET DISCOUNT (৳)</label>
+                <input type="number" id="qDiscount" class="search-input" style="padding-left: 15px; border-color: var(--danger); margin-top: 5px;" value="0">
+            </div>
+
+            <div style="background: #f8fafc; padding: 15px; border-radius: 15px; margin: 15px 0; text-align: center;">
+                <span style="font-size: 12px;">Total Price:</span>
+                <h2 id="qPricePreview" style="color: var(--success);">৳ 0.00</h2>
+            </div>
+
+            <button onclick="addToCart()" class="btn btn-primary">ADD TO CART</button>
+            <button onclick="closeM('qtyModal')" class="btn" style="background:none; color:var(--text-dim)">Cancel</button>
         </div>
     </div>
 
-    <div class="modal-overlay" id="cartModal">
+    <div class="modal" id="cartModal">
         <div class="modal-content">
-            <h3>Finalize Sale</h3>
+            <h3><i class="fa-solid fa-receipt"></i> Checkout</h3>
             
-            <div style="position: relative; margin-top: 10px;">
-                <label style="font-size: 12px; font-weight: bold;">Select Customer:</label>
-                <input type="text" id="cSearch" class="input-field" style="border: 2px solid #f8560644" placeholder="Type name or phone...">
-                <div id="cSuggest" class="suggest-box"></div>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-                <button onclick="openAddCust()" style="background:none; border:none; color:var(--primary); font-size:13px; font-weight:bold; cursor:pointer">+ Create New</button>
-                <div id="prevDueDisplay" style="color:var(--danger); font-size:12px; font-weight:bold"></div>
+            <div style="position: relative; margin-top: 15px;">
+                <input type="text" id="cSearch" class="search-input" placeholder="Search Customer..." style="padding-left: 15px;">
+                <div id="cSuggest"></div>
+                <div id="prevDueDisp" style="color: var(--danger); font-size: 12px; font-weight: bold; margin-top: 5px;"></div>
             </div>
 
-            <div id="cartItems" style="margin: 15px 0; max-height: 200px; overflow-y:auto; border-top: 1px solid #eee;"></div>
+            <button class="btn btn-add-cust" onclick="openM('custAddModal')">+ New Customer</button>
 
-            <div style="background:#f1f2f4; padding:15px; border-radius:10px">
-                <div style="display:flex; justify-content:space-between; font-size:18px"><span>Total:</span> <b id="totalText" style="color:var(--primary)">৳0</b></div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px">
-                    <span>Cash Paid:</span> <input type="number" id="paidInput" class="input-field" style="width:130px; margin:0; padding:8px" step="any">
+            <div id="cartItems" style="margin: 15px 0;"></div>
+
+            <div style="background: #f8fafc; padding: 15px; border-radius: 15px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <b>Grand Total:</b>
+                    <b id="totalText" style="font-size: 20px; color: var(--primary);">৳ 0.00</b>
                 </div>
+                <input type="number" id="paidInput" class="search-input" placeholder="Amount Paid" style="padding-left: 15px;">
             </div>
-            
-            <div class="btn-group">
-                <button onclick="processSale()" class="btn btn-orange"><i class="fa-solid fa-check-circle"></i> CONFIRM SALE</button>
-                <button onclick="closeM('cartModal')" style="border:none; margin-top:5px; background:none; color:#757575; cursor:pointer; font-size: 12px;">Close Cart</button>
-            </div>
+
+            <button onclick="processSale()" class="btn btn-primary" style="margin-top: 15px;">COMPLETE SALE</button>
+            <button onclick="closeM('cartModal')" class="btn" style="background:none;">Keep Shopping</button>
         </div>
     </div>
 
-    <div class="modal-overlay" id="addCustModal" style="z-index: 3500;">
+    <div class="modal" id="custAddModal">
         <div class="modal-content">
-            <h3 style="color:var(--primary)">+ New Customer</h3>
-            <input type="text" id="newCustName" class="input-field" placeholder="Full Name *">
-            <input type="text" id="newCustPhone" class="input-field" placeholder="Mobile Number *">
-            <div class="btn-group">
-                <button onclick="saveNewCustomer()" class="btn btn-orange">Save & Select</button>
-                <button onclick="closeM('addCustModal')" class="btn btn-black" style="background:#757575">Cancel</button>
-            </div>
+            <h3>New Customer</h3>
+            <input type="text" id="ncName" class="search-input" placeholder="Customer Name" style="padding-left:15px; margin-top:15px;">
+            <input type="text" id="ncPhone" class="search-input" placeholder="Phone Number" style="padding-left:15px; margin-top:10px;">
+            <button onclick="saveCustomer()" class="btn btn-primary" style="margin-top:15px;">Save & Select</button>
+            <button onclick="closeM('custAddModal')" class="btn" style="background:none;">Cancel</button>
         </div>
     </div>
 
@@ -135,7 +169,6 @@
         import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
             databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
             projectId: "social-media-5e6c8",
         };
@@ -143,150 +176,166 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
-        let cart = [], products = [], allCustomers = [], selProd = null, selCust = null;
+        let products = [], customers = [], cart = [], selProd = null, selCust = null, currentMode = 'box';
 
-        onValue(ref(db, 'inventory'), (snap) => {
-            products = []; snap.forEach(c => { 
-                let p = c.val(); p.id = c.key; products.push(p); 
-            });
+        // Load Products
+        onValue(ref(db, 'inventory'), snap => {
+            products = []; snap.forEach(c => { products.push({id: c.key, ...c.val()}); });
             renderProducts(products);
         });
 
-        onValue(ref(db, 'customers'), (snap) => {
-            allCustomers = []; snap.forEach(c => { 
-                let cu = c.val(); cu.id = c.key; allCustomers.push(cu); 
-            });
+        // Load Customers
+        onValue(ref(db, 'customers'), snap => {
+            customers = []; snap.forEach(c => { customers.push({id: c.key, ...c.val()}); });
         });
+
+        function getStockStr(p) {
+            let b = parseFloat(p.stock), bpp = parseFloat(p.boxesPerPacket), ppb = parseFloat(p.pcsPerBox);
+            let pk = Math.floor(b / bpp), rb = Math.floor(b % bpp), rp = Math.round((b % 1) * ppb);
+            let res = [];
+            if(pk > 0) res.push(pk + ' Pkt');
+            if(rb > 0) res.push(rb + ' Box');
+            if(rp > 0) res.push(rp + ' Pc');
+            return res.join(' ') || '0 Stock';
+        }
 
         function renderProducts(data) {
             const grid = document.getElementById('pGrid'); grid.innerHTML = "";
+            const today = new Date();
             data.forEach(p => {
-                const stockVal = parseFloat(p.stock || 0);
-                const isSel = cart.some(i => i.id === p.id);
-                
-                // Low Stock logic: 5 box er niche gele Red color hobe
-                const stockColor = stockVal < 5 ? 'var(--danger)' : 'var(--success)';
-                
+                const expDate = new Date(p.expiry + "-01");
                 const card = document.createElement('div');
-                card.className = `product-card ${isSel ? 'selected' : ''}`;
-                card.onclick = () => { 
-                    selProd = p; 
-                    document.getElementById('qName').innerText = p.name; 
-                    document.getElementById('stockAlert').innerText = `Current Stock: ${stockVal.toFixed(1)}`;
-                    document.getElementById('qInput').value = 1; 
-                    document.getElementById('qtyModal').style.display='flex'; 
-                };
+                card.className = "product-card";
+                card.onclick = () => openQtyModal(p);
                 card.innerHTML = `
-                    <h4>${p.name}</h4>
-                    <p class="info-text">EXP: ${p.expiry}</p>
-                    <p class="info-text" style="color:${stockColor}; font-weight:bold;">Stock: ${stockVal.toFixed(1)}</p>
-                    <p class="info-text" style="color:var(--info)">Buy Price: ৳${parseFloat(p.buyPrice || 0).toFixed(1)}</p>
-                    <b class="price-tag">৳${parseFloat(p.price).toFixed(1)}</b>
+                    <div class="card-header">
+                        <div class="med-name">${p.name}</div>
+                        <div class="badge-group">
+                            <span class="mini-badge bg-cat">${p.category || 'Medicine'}</span>
+                            <span class="mini-badge bg-mfg">${p.manufacturer || p.company || 'N/A'}</span>
+                        </div>
+                    </div>
+                    <div class="generic-text">${p.generic || 'N/A'}</div>
+                    <div class="stock-info">
+                        <div><span style="font-size:9px; display:block; color:var(--text-dim); font-weight:800">STOCK</span>
+                        <span style="font-weight:800; color:var(--primary); font-size:13px">${getStockStr(p)}</span></div>
+                        <div style="text-align:right"><span style="font-size:9px; display:block; color:var(--text-dim); font-weight:800">RACK</span>
+                        <span style="font-weight:700; color:var(--text-main); font-size:12px">${p.rack || 'N/A'}</span></div>
+                    </div>
+                    <div class="price-row">
+                        <span style="font-size:11px; font-weight:700; color:var(--text-dim)">BOX PRICE</span>
+                        <b style="color:var(--success); font-size:18px">৳${parseFloat(p.salePriceBox || 0).toFixed(2)}</b>
+                    </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
+        // --- Selection Logic ---
+        window.openQtyModal = (p) => {
+            selProd = p;
+            document.getElementById('qName').innerText = p.name;
+            document.getElementById('qStockText').innerText = "In Stock: " + getStockStr(p);
+            setMode('box');
+            openM('qtyModal');
+        };
+
+        window.setMode = (mode) => {
+            currentMode = mode;
+            ['pkt', 'box', 'pc'].forEach(m => document.getElementById('m'+m.charAt(0).toUpperCase()+m.slice(1)).className = 'mode-btn');
+            document.getElementById('m'+mode.charAt(0).toUpperCase()+mode.slice(1)).className = 'mode-btn active';
+            document.getElementById('discountArea').style.display = mode === 'pkt' ? 'block' : 'none';
+            updatePrice();
+        };
+
+        const updatePrice = () => {
+            if(!selProd) return;
+            const q = parseFloat(document.getElementById('qInput').value) || 0;
+            const d = parseFloat(document.getElementById('qDiscount').value) || 0;
+            let price = 0;
+            if(currentMode === 'pkt') price = (q * selProd.boxesPerPacket * selProd.salePriceBox) - d;
+            else if(currentMode === 'box') price = q * selProd.salePriceBox;
+            else price = q * (selProd.salePriceBox / selProd.pcsPerBox);
+            document.getElementById('qPricePreview').innerText = `৳ ${price.toFixed(2)}`;
+        };
+        document.getElementById('qInput').oninput = updatePrice;
+        document.getElementById('qDiscount').oninput = updatePrice;
+
         window.addToCart = () => {
             const q = parseFloat(document.getElementById('qInput').value);
-            if(q > 0 && q <= parseFloat(selProd.stock)) {
-                cart = cart.filter(i => i.id !== selProd.id);
-                cart.push({...selProd, qty: q});
-                document.getElementById('cartCount').innerText = cart.length;
-                renderProducts(products);
-                closeM('qtyModal');
-            } else alert("Invalid Quantity!");
+            if(q <= 0) return;
+            let boxNeed = currentMode === 'pkt' ? q * selProd.boxesPerPacket : (currentMode === 'box' ? q : q / selProd.pcsPerBox);
+            if(boxNeed > selProd.stock) return alert("Insufficient Stock!");
+            cart.push({ ...selProd, sellQty: q, sellMode: currentMode, boxQty: boxNeed, total: parseFloat(document.getElementById('qPricePreview').innerText.replace('৳ ','')) });
+            document.getElementById('cartCount').innerText = cart.length;
+            closeM('qtyModal');
         };
 
+        // --- Cart Logic ---
         window.toggleCart = () => {
-            if(!cart.length) return alert("Cart is empty!");
-            document.getElementById('cartModal').style.display='flex';
-            renderCartList();
-        };
-
-        function renderCartList() {
+            if(!cart.length) return alert("Cart empty");
             const list = document.getElementById('cartItems');
             list.innerHTML = ""; let total = 0;
-            cart.forEach(i => {
-                const subTotal = i.price * i.qty; total += subTotal;
-                list.innerHTML += `<div class="cart-item-row">
-                    <div><p style="font-weight:700;">${i.name}</p><small>৳${parseFloat(i.price).toFixed(1)} x ${i.qty.toFixed(1)}</small></div>
-                    <div style="display:flex; align-items:center; gap:15px;"><b>৳${subTotal.toFixed(2)}</b>
-                    <i class="fa-solid fa-trash-can remove-btn" onclick="removeFromCart('${i.id}')"></i></div>
+            cart.forEach((item, i) => {
+                total += item.total;
+                list.innerHTML += `<div class="cart-item">
+                    <div><b>${item.name}</b><br><small>${item.sellQty} ${item.sellMode}</small></div>
+                    <div style="text-align:right"><b>৳${item.total.toFixed(2)}</b><br><i class="fa-solid fa-trash" style="color:var(--danger); cursor:pointer" onclick="removeItem(${i})"></i></div>
                 </div>`;
             });
-            document.getElementById('totalText').innerText = "৳" + total.toFixed(2);
+            document.getElementById('totalText').innerText = `৳ ${total.toFixed(2)}`;
             document.getElementById('paidInput').value = total.toFixed(2);
-        }
-
-        window.removeFromCart = (id) => {
-            cart = cart.filter(item => item.id !== id);
-            document.getElementById('cartCount').innerText = cart.length;
-            renderProducts(products);
-            if(cart.length > 0) renderCartList(); else closeM('cartModal');
+            openM('cartModal');
         };
 
-        const cInp = document.getElementById('cSearch');
-        const cSug = document.getElementById('cSuggest');
-        cInp.oninput = () => {
-            const val = cInp.value.toLowerCase();
-            cSug.innerHTML = ""; selCust = null;
-            if(!val) { cSug.style.display='none'; return; }
-            const match = allCustomers.filter(c => c.name.toLowerCase().includes(val) || c.phone.includes(val));
-            if(match.length) {
-                cSug.style.display='block';
-                match.forEach(c => {
-                    const d = document.createElement('div'); d.className='suggest-opt';
-                    d.innerText = `${c.name} (${c.phone})`;
-                    d.onclick = () => { 
-                        cInp.value = c.name; selCust = c; 
-                        cSug.style.display='none'; 
-                        if(c.due) document.getElementById('prevDueDisplay').innerText = `Due: ৳${c.due}`;
-                    };
-                    cSug.appendChild(d);
-                });
-            }
+        window.removeItem = (i) => { cart.splice(i, 1); toggleCart(); document.getElementById('cartCount').innerText = cart.length; };
+
+        // --- Customer Logic ---
+        document.getElementById('cSearch').oninput = (e) => {
+            const v = e.target.value.toLowerCase();
+            const sug = document.getElementById('cSuggest'); sug.innerHTML = "";
+            if(!v) return;
+            customers.filter(c => c.name.toLowerCase().includes(v) || c.phone.includes(v)).forEach(c => {
+                const d = document.createElement('div'); d.className = "sug-item";
+                d.innerText = `${c.name} (${c.phone})`;
+                d.onclick = () => {
+                    selCust = c;
+                    document.getElementById('cSearch').value = c.name;
+                    document.getElementById('prevDueDisp').innerText = c.due > 0 ? `Prev. Due: ৳${c.due}` : "";
+                    sug.innerHTML = "";
+                };
+                sug.appendChild(d);
+            });
         };
 
-        window.openAddCust = () => document.getElementById('addCustModal').style.display='flex';
-        window.closeM = (id) => document.getElementById(id).style.display='none';
-
-        window.saveNewCustomer = async () => {
-            const n = document.getElementById('newCustName').value;
-            const p = document.getElementById('newCustPhone').value;
-            if(!n || !p) return alert("Required!");
+        window.saveCustomer = async () => {
+            const name = document.getElementById('ncName').value;
+            if(!name) return alert("Enter Name");
             const newRef = push(ref(db, 'customers'));
-            await set(newRef, { name: n, phone: p, due: 0 });
-            cInp.value = n; selCust = { id: newRef.key, name: n, phone: p, due: 0 };
-            closeM('addCustModal');
+            const data = { name, phone: document.getElementById('ncPhone').value || 'N/A', due: 0 };
+            await set(newRef, data);
+            selCust = {id: newRef.key, ...data};
+            document.getElementById('cSearch').value = name;
+            closeM('custAddModal');
         };
 
         window.processSale = async () => {
-            if(!selCust && !cInp.value.trim()) return alert("Select Customer!");
-            const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+            if(!selCust) return alert("Select a customer");
+            const total = cart.reduce((s, i) => s + i.total, 0);
             const paid = parseFloat(document.getElementById('paidInput').value) || 0;
             const due = total - paid;
-
-            for(let i of cart) { 
-                const newStock = (parseFloat(i.stock) - i.qty).toFixed(1);
-                await set(ref(db, `inventory/${i.id}/stock`), newStock); 
-            }
-            if(selCust && due > 0) { 
-                await set(ref(db, `customers/${selCust.id}/due`), (parseFloat(selCust.due || 0) + due).toFixed(2)); 
-            }
-            
-            await push(ref(db, 'sales'), { 
-                customerName: selCust ? selCust.name : cInp.value, 
-                total: total.toFixed(2), paid: paid.toFixed(2), due: due.toFixed(2),
-                date: new Date().toLocaleDateString('en-GB'), timestamp: Date.now(), items: cart 
-            });
-
-            alert("Sale Confirmed!"); location.reload();
+            for(let item of cart) { await set(ref(db, `inventory/${item.id}/stock`), (item.stock - item.boxQty).toFixed(4)); }
+            if(due > 0) { await set(ref(db, `customers/${selCust.id}/due`), (parseFloat(selCust.due || 0) + due).toFixed(2)); }
+            await push(ref(db, 'sales'), { customer: selCust.name, total, paid, due, items: cart, date: Date.now() });
+            alert("Sale Successful!"); location.reload();
         };
 
+        window.openM = (id) => document.getElementById(id).style.display = 'flex';
+        window.closeM = (id) => document.getElementById(id).style.display = 'none';
+
         document.getElementById('pSearch').oninput = (e) => {
-            const val = e.target.value.toLowerCase();
-            renderProducts(products.filter(p => p.name.toLowerCase().includes(val)));
+            const v = e.target.value.toLowerCase();
+            renderProducts(products.filter(p => p.name.toLowerCase().includes(v) || (p.generic && p.generic.toLowerCase().includes(v))));
         };
     </script>
 </body>
