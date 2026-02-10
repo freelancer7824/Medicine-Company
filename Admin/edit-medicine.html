@@ -3,130 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Inventory - Onyx Pharma</title>
+    <title>Onyx Pharma - Inventory Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #f85606;
-            --bg: #eff0f5;
+            --bg: #f4f7fa;
             --card: #ffffff;
-            --text-main: #212121;
-            --text-dim: #757575;
-            --border: #e0e0e0;
-            --success: #2e7d32;
-            --danger: #d32f2f;
-            --input-bg: #ffffff;
+            --text-main: #1a1a1a;
+            --text-dim: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', 'Segoe UI', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: var(--bg); color: var(--text-main); padding: 15px; }
 
-        .container { max-width: 1100px; margin: 0 auto; }
+        .container { max-width: 900px; margin: 0 auto; }
 
-        /* Header UI */
+        /* Header & Search */
         .nav-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .nav-header h2 { color: var(--primary); font-size: 22px; font-weight: 800; }
-        .back-link { color: var(--text-dim); text-decoration: none; font-size: 14px; border: 1px solid var(--border); padding: 8px 15px; border-radius: 8px; background: #fff; transition: 0.2s; }
-        .back-link:hover { border-color: var(--primary); color: var(--primary); }
+        .back-link { color: var(--text-dim); text-decoration: none; font-size: 13px; border: 1px solid var(--border); padding: 8px 15px; border-radius: 10px; background: #fff; font-weight: 600; }
+        
+        .search-container { position: relative; margin-bottom: 20px; }
+        .search-bar { width: 100%; background: #fff; border: 2px solid var(--border); padding: 12px 12px 12px 45px; border-radius: 15px; outline: none; font-weight: 600; font-size: 14px; }
+        .search-container i { position: absolute; left: 18px; top: 16px; color: var(--text-dim); }
 
-        /* Search Bar */
-        .search-container { position: relative; margin-bottom: 20px; width: 100%; }
-        .search-container i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-dim); }
-        .search-bar { width: 100%; background: var(--input-bg); border: 1px solid var(--border); padding: 12px 12px 12px 45px; border-radius: 12px; color: var(--text-main); outline: none; transition: 0.3s; }
-        .search-bar:focus { border-color: var(--primary); box-shadow: 0 0 8px rgba(248, 86, 6, 0.1); }
-
-        /* Medicine Row */
+        /* Medicine Card */
         .med-row { 
-            background: var(--card); border: 1px solid var(--border); padding: 15px; 
-            border-radius: 12px; display: flex; justify-content: space-between; 
-            align-items: center; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-            margin-bottom: 10px;
+            background: var(--card); border: 1px solid var(--border); padding: 18px; 
+            border-radius: 20px; display: flex; justify-content: space-between; 
+            align-items: center; margin-bottom: 12px; transition: 0.3s;
         }
-        .med-row:hover { border-color: var(--primary); transform: translateX(5px); }
+        .med-row.warning-border { border-left: 6px solid var(--warning); }
+        .med-row.danger-border { border-left: 6px solid var(--danger); }
 
-        .med-info h4 { font-size: 16px; margin-bottom: 4px; color: #000; }
-        .med-info p { font-size: 12px; color: var(--text-dim); }
-        .med-meta { font-size: 13px; font-weight: bold; color: var(--primary); margin-top: 5px; }
-        .price-tag { font-size: 11px; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; color: #555; margin-right: 5px; }
+        .med-info h4 { font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        .status-tag { font-size: 9px; padding: 2px 8px; border-radius: 6px; font-weight: 800; text-transform: uppercase; }
+        .tag-low { background: #fffbeb; color: #92400e; }
+        .tag-out { background: #fef2f2; color: #991b1b; }
+        .tag-expired { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+
+        .badge-group { display: flex; gap: 6px; margin-top: 6px; }
+        .mini-badge { font-size: 9px; font-weight: 800; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; background: #f1f5f9; color: #475569; }
+        .stock-badge { margin-top: 10px; display: inline-block; font-size: 12px; font-weight: 800; color: var(--primary); background: #fff0e9; padding: 6px 14px; border-radius: 10px; }
 
         .action-btns { display: flex; gap: 10px; }
-        .btn-edit { background: rgba(248, 86, 6, 0.05); color: var(--primary); border: 1px solid var(--primary); padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: 600; }
-        .btn-edit:hover { background: var(--primary); color: white; }
-        .btn-del { background: rgba(211, 47, 47, 0.05); color: var(--danger); border: 1px solid var(--danger); padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
-        .btn-del:hover { background: var(--danger); color: white; }
+        .btn-action { width: 44px; height: 44px; border-radius: 14px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: 0.2s; }
+        .btn-restock { background: #ecfdf5; color: var(--success); }
+        .btn-edit { background: #f1f5f9; color: #475569; }
+        .btn-del { background: #fff1f2; color: var(--danger); }
+        .btn-action:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
 
-        /* Edit Modal */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(3px); }
-        .modal-content { background: var(--card); width: 100%; max-width: 500px; padding: 25px; border-radius: 15px; box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
-        .modal-header { margin-bottom: 20px; border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
+        /* Modals */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); padding: 15px; }
+        .modal-content { background: #fff; width: 100%; max-width: 650px; padding: 25px; border-radius: 28px; max-height: 95vh; overflow-y: auto; }
         
-        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .full { grid-column: span 2; }
-        .form-group label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 5px; font-weight: 600; }
-        .form-group input { width: 100%; background: #f9f9f9; border: 1px solid var(--border); padding: 10px; border-radius: 8px; color: var(--text-main); outline: none; }
-        .form-group input:focus { border-color: var(--primary); }
+        .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .double { grid-column: span 2; }
+        .full { grid-column: span 3; }
+        
+        .form-group label { display: block; font-size: 10px; color: var(--text-dim); font-weight: 800; text-transform: uppercase; margin-bottom: 6px; }
+        input, select { width: 100%; background: #f8fafc; border: 2px solid #edf2f7; padding: 12px; border-radius: 12px; outline: none; font-weight: 600; font-size: 14px; }
+        input:focus { border-color: var(--primary); }
 
-        .update-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 15px; }
-        
-        @media (max-width: 600px) {
-            .med-row { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .action-btns { width: 100%; justify-content: space-between; }
-        }
+        .preview-box { background: #f8fafc; padding: 15px; border-radius: 18px; border: 1px dashed var(--border); margin: 15px 0; }
+        .preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; }
+        .preview-item span { display: block; font-size: 9px; color: var(--text-dim); font-weight: 800; margin-bottom: 4px; }
+        .preview-item b { font-size: 15px; color: var(--text-main); }
+
+        .btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 15px; font-weight: 800; cursor: pointer; margin-top: 10px; font-size: 15px; }
+        .btn-cancel { width: 100%; background: transparent; border: none; color: var(--text-dim); padding: 12px; cursor: pointer; font-weight: 700; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="nav-header">
-            <h2><i class="fa-solid fa-pen-to-square"></i> Manage Stock</h2>
+            <h2>Onyx <span>Pharma</span></h2>
             <a href="inventory.html" class="back-link">Inventory Home</a>
         </div>
 
         <div class="search-container">
             <i class="fa-solid fa-search"></i>
-            <input type="text" id="searchBox" class="search-bar" placeholder="Search medicine to edit...">
+            <input type="text" id="searchBox" class="search-bar" placeholder="Search product, manufacturer or status...">
         </div>
 
-        <div id="medicineList" class="inventory-list"></div>
+        <div id="medicineList"></div>
     </div>
 
     <div id="editModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header"><h3>Update Medicine</h3></div>
+            <h3 style="text-align: center; color: var(--primary); margin-bottom: 20px;">Edit Product Details</h3>
             <form id="editForm">
                 <input type="hidden" id="editId">
                 <div class="form-grid">
-                    <div class="form-group full">
-                        <label>Medicine Name</label>
-                        <input type="text" id="editName" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Generic</label>
-                        <input type="text" id="editGeneric" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Rack No</label>
-                        <input type="text" id="editRack">
-                    </div>
-                    <div class="form-group">
-                        <label>Stock Qty</label>
-                        <input type="number" id="editStock" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Buy Price (৳)</label>
-                        <input type="number" id="editBuyPrice" step="0.01" required style="border-color: #ffcccc;">
-                    </div>
-                    <div class="form-group">
-                        <label>Sale Price (৳)</label>
-                        <input type="number" id="editPrice" step="0.01" required>
-                    </div>
-                    <div class="form-group full">
-                        <label>Expiry Date</label>
-                        <input type="month" id="editExpiry" required>
+                    <div class="form-group double"><label>Medicine Name</label><input type="text" id="editName" required></div>
+                    <div class="form-group"><label>Expiry Date</label><input type="month" id="editExpiry" required></div>
+                    
+                    <div class="form-group"><label>Manufacturer</label><select id="editManufacturer" required></select></div>
+                    <div class="form-group"><label>Category</label><select id="editCategory" required></select></div>
+                    <div class="form-group"><label>Generic</label><select id="editGeneric" required></select></div>
+
+                    <div class="form-group"><label>Packets In Stock</label><input type="number" id="editPktQty" step="0.01"></div>
+                    <div class="form-group"><label>Boxes per Packet</label><input type="number" id="editBPP"></div>
+                    <div class="form-group"><label>Pcs per Box</label><input type="number" id="editPPB"></div>
+
+                    <div class="form-group"><label>Buy Price (Box)</label><input type="number" id="editBuy" step="0.01"></div>
+                    <div class="form-group"><label>Sale Price (Box)</label><input type="number" id="editSale" step="0.01"></div>
+                    <div class="form-group"><label>Total Boxes (Auto)</label><input type="number" id="editStockFinal" readonly style="background:#eee"></div>
+                </div>
+                
+                <div class="preview-box">
+                    <div class="preview-grid">
+                        <div class="preview-item"><span>TOTAL PCS</span><b id="editViewPcs">0</b></div>
+                        <div class="preview-item"><span>UNIT PRICE</span><b id="editViewUnit">৳ 0.00</b></div>
+                        <div class="preview-item"><span>PROFIT/BOX</span><b id="editViewProfit" style="color: var(--success);">৳ 0.00</b></div>
                     </div>
                 </div>
-                <button type="submit" class="update-btn">UPDATE MEDICINE</button>
-                <button type="button" onclick="closeModal()" style="width:100%; background:none; border:none; color:var(--text-dim); margin-top:10px; cursor:pointer; font-weight:600;">Cancel</button>
+
+                <button type="submit" class="btn-submit">UPDATE PRODUCT</button>
+                <button type="button" onclick="closeModals()" class="btn-cancel">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="restockModal" class="modal">
+        <div class="modal-content" style="max-width: 420px;">
+            <h3 style="text-align: center; color: var(--success); margin-bottom: 15px;">Quick Restock</h3>
+            <div style="background: #f0fdf4; padding: 15px; border-radius: 20px; text-align: center; margin-bottom: 20px; border: 1px solid #bbf7d0;">
+                <h4 id="rsName">---</h4>
+                <p style="font-size: 11px; font-weight: 700; color: #166534; margin-top: 4px;">1 Pkt = <span id="rsBPP">0</span> Box | Curr: <span id="rsCurr">0</span> Box</p>
+            </div>
+            <form id="restockForm">
+                <input type="hidden" id="rsId">
+                <input type="hidden" id="rsOldStock">
+                <div class="form-group">
+                    <label>How many new PACKETS arrived?</label>
+                    <input type="number" id="rsInputPkt" step="0.01" placeholder="Example: 10" required>
+                </div>
+                <div class="preview-box">
+                    <div class="preview-grid">
+                        <div class="preview-item"><span>NEW BOXES</span><b id="rsCalcBox">0</b></div>
+                        <div class="preview-item" style="grid-column: span 2;"><span>FINAL STOCK</span><b id="rsCalcTotal" style="color: var(--primary);">0 Box</b></div>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit" style="background: var(--success);">CONFIRM & ADD</button>
+                <button type="button" onclick="closeModals()" class="btn-cancel">Cancel</button>
             </form>
         </div>
     </div>
@@ -135,92 +162,171 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
-            databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
-            projectId: "social-media-5e6c8",
-        };
-
+        const firebaseConfig = { databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const invRef = ref(db, 'inventory');
 
-        // Load Data
-        onValue(invRef, (snap) => {
+        // --- Dropdowns Loader ---
+        const fill = (path, id) => {
+            onValue(ref(db, path), (s) => {
+                const el = document.getElementById(id);
+                el.innerHTML = '<option value="">Select</option>';
+                s.forEach(c => {
+                    let o = document.createElement('option');
+                    o.value = o.innerText = c.val().name;
+                    el.appendChild(o);
+                });
+            });
+        };
+        fill('categories', 'editCategory');
+        fill('manufacturers', 'editManufacturer');
+        fill('generics', 'editGeneric');
+
+        // --- Status Check ---
+        const checkStatus = (stock, expiry) => {
+            const today = new Date();
+            const exp = new Date(expiry);
+            if (exp < today) return { h: '<span class="status-tag tag-expired">Expired</span>', c: 'danger-border' };
+            if (stock <= 0) return { h: '<span class="status-tag tag-out">Stock Out</span>', c: 'danger-border' };
+            if (stock < 5) return { h: '<span class="status-tag tag-low">Low Stock</span>', c: 'warning-border' };
+            return { h: '', c: '' };
+        };
+
+        // --- Formatter ---
+        const formatStock = (qty, bpp, ppb) => {
+            let p = Math.floor(qty / bpp);
+            let b = Math.floor(qty % bpp);
+            let c = Math.round((qty % 1) * ppb);
+            let r = [];
+            if(p > 0) r.push(p + " Pkt");
+            if(b > 0) r.push(b + " Box");
+            if(c > 0) r.push(c + " Pc");
+            return r.join(" ") || "0 Stock";
+        };
+
+        // --- Main List ---
+        onValue(ref(db, 'inventory'), (snap) => {
             const list = document.getElementById('medicineList');
             list.innerHTML = "";
             snap.forEach(child => {
                 const p = child.val();
                 const id = child.key;
+                const st = checkStatus(p.stock, p.expiry);
+
                 list.innerHTML += `
-                    <div class="med-row">
+                    <div class="med-row ${st.c}">
                         <div class="med-info">
-                            <h4>${p.name}</h4>
-                            <p>${p.generic} | Rack: ${p.rack || 'N/A'}</p>
-                            <div class="med-meta">
-                                <span class="price-tag">Buy: ৳${p.buyPrice || '0.00'}</span>
-                                Stock: ${p.stock} Pcs | Sale: ৳${p.price}
+                            <h4>${p.name} ${st.h}</h4>
+                            <div class="badge-group">
+                                <span class="mini-badge">${p.manufacturer}</span>
+                                <span class="mini-badge" style="background:#fff1f2; color:var(--danger)">EXP: ${p.expiry}</span>
                             </div>
+                            <div class="stock-badge">${formatStock(p.stock, p.boxesPerPacket, p.pcsPerBox)}</div>
                         </div>
                         <div class="action-btns">
-                            <button class="btn-edit" onclick="openEdit('${id}', '${p.name}', '${p.generic}', '${p.rack}', '${p.stock}', '${p.price}', '${p.expiry}', '${p.buyPrice || 0}')">
-                                <i class="fa-solid fa-edit"></i> Edit
-                            </button>
-                            <button class="btn-del" onclick="deleteItem('${id}')">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
+                            <button class="btn-action btn-restock" onclick="openRestock('${id}', '${p.name}', ${p.stock}, ${p.boxesPerPacket})"><i class="fa-solid fa-plus"></i></button>
+                            <button class="btn-action btn-edit" onclick="openEdit('${id}', ${JSON.stringify(p).replace(/"/g, '&quot;')})"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-action btn-del" onclick="deleteItem('${id}')"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>`;
             });
         });
 
-        // Edit Functions
-        window.openEdit = (id, name, generic, rack, stock, price, expiry, buyPrice) => {
+        // --- Edit Calculation ---
+        const runEditCalc = () => {
+            const pkt = parseFloat(document.getElementById('editPktQty').value) || 0;
+            const bpp = parseFloat(document.getElementById('editBPP').value) || 0;
+            const ppb = parseFloat(document.getElementById('editPPB').value) || 0;
+            const buy = parseFloat(document.getElementById('editBuy').value) || 0;
+            const sale = parseFloat(document.getElementById('editSale').value) || 0;
+
+            const boxes = pkt * bpp;
+            document.getElementById('editStockFinal').value = boxes.toFixed(2);
+            document.getElementById('editViewPcs').innerText = Math.round(boxes * ppb);
+            document.getElementById('editViewUnit').innerText = `৳ ${(ppb > 0 ? sale/ppb : 0).toFixed(2)}`;
+            document.getElementById('editViewProfit').innerText = `৳ ${(sale - buy).toFixed(2)}`;
+        };
+        ['editPktQty', 'editBPP', 'editPPB', 'editBuy', 'editSale'].forEach(id => {
+            document.getElementById(id).addEventListener('input', runEditCalc);
+        });
+
+        // --- Open Edit ---
+        window.openEdit = (id, p) => {
             document.getElementById('editId').value = id;
-            document.getElementById('editName').value = name;
-            document.getElementById('editGeneric').value = generic;
-            document.getElementById('editRack').value = rack;
-            document.getElementById('editStock').value = stock;
-            document.getElementById('editBuyPrice').value = buyPrice;
-            document.getElementById('editPrice').value = price;
-            document.getElementById('editExpiry').value = expiry;
+            document.getElementById('editName').value = p.name;
+            document.getElementById('editExpiry').value = p.expiry;
+            document.getElementById('editManufacturer').value = p.manufacturer;
+            document.getElementById('editCategory').value = p.category;
+            document.getElementById('editGeneric').value = p.generic;
+            document.getElementById('editBPP').value = p.boxesPerPacket;
+            document.getElementById('editPPB').value = p.pcsPerBox;
+            document.getElementById('editPktQty').value = (p.stock / p.boxesPerPacket).toFixed(2);
+            document.getElementById('editBuy').value = p.buyPriceBox;
+            document.getElementById('editSale').value = p.salePriceBox;
+            runEditCalc();
             document.getElementById('editModal').style.display = 'flex';
         };
 
-        window.closeModal = () => document.getElementById('editModal').style.display = 'none';
+        // --- Open Restock ---
+        window.openRestock = (id, name, stock, bpp) => {
+            document.getElementById('rsId').value = id;
+            document.getElementById('rsName').innerText = name;
+            document.getElementById('rsBPP').innerText = bpp;
+            document.getElementById('rsCurr').innerText = stock.toFixed(2);
+            document.getElementById('rsOldStock').value = stock;
+            document.getElementById('rsInputPkt').value = "";
+            document.getElementById('rsCalcBox').innerText = "0";
+            document.getElementById('rsCalcTotal').innerText = stock.toFixed(2) + " Box";
+            document.getElementById('restockModal').style.display = 'flex';
+        };
 
-        document.getElementById('editForm').onsubmit = (e) => {
+        document.getElementById('rsInputPkt').oninput = function() {
+            const bpp = parseFloat(document.getElementById('rsBPP').innerText);
+            const added = (parseFloat(this.value) || 0) * bpp;
+            const total = parseFloat(document.getElementById('rsOldStock').value) + added;
+            document.getElementById('rsCalcBox').innerText = added.toFixed(2);
+            document.getElementById('rsCalcTotal').innerText = total.toFixed(2) + " Box";
+        };
+
+        // --- Save Data ---
+        document.getElementById('editForm').onsubmit = async (e) => {
             e.preventDefault();
             const id = document.getElementById('editId').value;
-            const bPrice = parseFloat(document.getElementById('editBuyPrice').value);
-            const sPrice = parseFloat(document.getElementById('editPrice').value);
-            
             const data = {
                 name: document.getElementById('editName').value,
+                expiry: document.getElementById('editExpiry').value,
+                manufacturer: document.getElementById('editManufacturer').value,
+                category: document.getElementById('editCategory').value,
                 generic: document.getElementById('editGeneric').value,
-                rack: document.getElementById('editRack').value,
-                stock: parseInt(document.getElementById('editStock').value),
-                buyPrice: bPrice.toFixed(2),
-                price: sPrice.toFixed(2),
-                profitPerUnit: (sPrice - bPrice).toFixed(2),
-                expiry: document.getElementById('editExpiry').value
+                stock: parseFloat(document.getElementById('editStockFinal').value),
+                boxesPerPacket: parseFloat(document.getElementById('editBPP').value),
+                pcsPerBox: parseFloat(document.getElementById('editPPB').value),
+                buyPriceBox: parseFloat(document.getElementById('editBuy').value),
+                salePriceBox: parseFloat(document.getElementById('editSale').value)
             };
-            
-            update(ref(db, `inventory/${id}`), data).then(() => {
-                closeModal();
-                alert("Updated Successfully!");
-            });
+            await update(ref(db, `inventory/${id}`), data);
+            closeModals();
         };
 
-        window.deleteItem = (id) => {
-            if(confirm("Are you sure?")) remove(ref(db, `inventory/${id}`));
+        document.getElementById('restockForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('rsId').value;
+            const finalStock = parseFloat(document.getElementById('rsCalcTotal').innerText);
+            await update(ref(db, `inventory/${id}`), { stock: finalStock });
+            closeModals();
         };
 
-        // Search functionality
-        document.getElementById('searchBox').onkeyup = function() {
-            let val = this.value.toLowerCase();
-            document.querySelectorAll('.med-row').forEach(row => {
-                row.style.display = row.innerText.toLowerCase().includes(val) ? 'flex' : 'none';
+        window.closeModals = () => {
+            document.getElementById('editModal').style.display = 'none';
+            document.getElementById('restockModal').style.display = 'none';
+        };
+
+        window.deleteItem = (id) => { if(confirm("Are you sure?")) remove(ref(db, `inventory/${id}`)); };
+
+        document.getElementById('searchBox').oninput = function() {
+            let v = this.value.toLowerCase();
+            document.querySelectorAll('.med-row').forEach(r => {
+                r.style.display = r.innerText.toLowerCase().includes(v) ? 'flex' : 'none';
             });
         };
     </script>
