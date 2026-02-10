@@ -3,173 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Low Stock Inventory - Onyx Pharma</title>
+    <title>Low Stock - Onyx Pharma</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --danger: #d32f2f;
-            --warning: #f57c00;
-            --bg: #eff0f5;
-            --card: #ffffff;
             --primary: #f85606;
-            --generic: #0288d1;
-            --cat: #607d8b;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #f4f7fa;
+            --border: #e2e8f0;
+            --text-main: #1a1a1a;
+            --text-dim: #64748b;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg); padding: 15px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); padding: 15px; color: var(--text-main); }
 
-        .container { max-width: 900px; margin: 0 auto; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        
+        /* Header */
+        .header { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border); }
+        .header h2 { font-size: 22px; font-weight: 800; color: var(--danger); margin-bottom: 15px; }
+        
+        .controls { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; }
+        input, select { padding: 12px; border-radius: 12px; border: 2px solid var(--border); outline: none; font-weight: 600; }
+        input:focus { border-color: var(--primary); }
 
-        /* Filter Section */
-        .filter-section {
-            background: white; padding: 20px; border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px;
-            position: sticky; top: 10px; z-index: 100;
+        /* Grid */
+        .stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 15px; }
+
+        .card { 
+            background: white; padding: 20px; border-radius: 20px; border: 1px solid var(--border);
+            position: relative; transition: 0.3s;
         }
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .header-top h2 { color: var(--danger); font-size: 20px; }
-        
-        .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        
-        .search-box { position: relative; }
-        .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888; }
-        .search-box input { width: 100%; padding: 10px 10px 10px 35px; border: 1.5px solid #eee; border-radius: 8px; outline: none; }
+        .card.critical { border-left: 6px solid var(--danger); }
+        .card.warning { border-left: 6px solid var(--warning); }
 
-        select { padding: 10px; border: 1.5px solid #eee; border-radius: 8px; outline: none; cursor: pointer; }
+        .generic { color: #0288d1; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+        .name { font-size: 18px; font-weight: 800; margin: 2px 0 8px 0; color: #000; }
 
-        /* Stock Card */
-        .stock-item {
-            background: white; padding: 18px; border-radius: 12px; margin-bottom: 12px;
+        /* Badges */
+        .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+        .badge { 
+            font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 8px; 
+            background: #f1f5f9; color: #475569; display: flex; align-items: center; gap: 5px;
+        }
+        .b-cat { background: #eff6ff; color: #1e40af; }
+        .b-mfg { background: #f0fdf4; color: #166534; }
+
+        /* Stock Info */
+        .info-box { 
+            background: #f8fafc; padding: 15px; border-radius: 15px; 
             display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02); border-left: 6px solid #ddd;
         }
-        .stock-item.critical { border-left-color: var(--danger); }
-        
-        .med-details h4 { font-size: 18px; color: #000; margin-bottom: 5px; text-transform: uppercase; }
-        .med-generic { color: var(--generic); font-size: 12px; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 2px; }
-        
-        .info-row { display: flex; flex-wrap: wrap; gap: 8px; font-size: 11px; margin-top: 8px; }
-        .tag { padding: 3px 10px; border-radius: 4px; border: 1px solid #e0e0e0; background: #f9f9f9; font-weight: 600; }
-        .tag-cat { background: #eceff1; color: var(--cat); }
-        .tag-rack { background: #e3f2fd; color: #1565c0; }
+        .label { font-size: 9px; font-weight: 800; color: var(--text-dim); display: block; }
+        .val { font-size: 14px; font-weight: 800; }
 
-        .stock-status { text-align: right; min-width: 110px; }
-        .qty-badge { 
-            padding: 6px 12px; border-radius: 8px; font-weight: 900; font-size: 16px;
-            display: inline-block; margin-bottom: 5px;
+        .footer { 
+            margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border);
+            display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--text-dim);
         }
-        .out-of-stock { background: #ffebee; color: var(--danger); }
-        .very-low { background: #fff3e0; color: var(--warning); }
-
-        .no-data { text-align: center; padding: 50px; color: #999; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="filter-section">
-        <div class="header-top">
-            <h2><i class="fa-solid fa-file-medical"></i> Low Stock Manager</h2>
-            <span id="itemCount" style="font-weight: bold; color: var(--primary);">0 Items</span>
-        </div>
-        
-        <div class="filter-grid">
-            <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="searchInput" placeholder="Search name or generic...">
-            </div>
-            <select id="stockFilter">
-                <option value="11">Under 10 Pcs</option>
-                <option value="6">Under 5 Pcs</option>
-                <option value="1">Out of Stock</option>
+    <div class="header">
+        <h2><i class="fa-solid fa-triangle-exclamation"></i> Low Stock Manager</h2>
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="Search by name, generic, or rack...">
+            <select id="filterSelect">
+                <option value="all">All Low Stock</option>
+                <option value="out">Out of Stock</option>
+                <option value="low">Under 1 Packet</option>
             </select>
         </div>
     </div>
 
-    <div id="lowStockList"></div>
+    <div class="stock-grid" id="stockList"></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
-        databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
-        projectId: "social-media-5e6c8",
-    };
-
+    const firebaseConfig = { databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com" };
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let allProducts = [];
-    const listDiv = document.getElementById('lowStockList');
-    const searchInput = document.getElementById('searchInput');
-    const stockFilter = document.getElementById('stockFilter');
-    const itemCount = document.getElementById('itemCount');
+    let inventory = [];
 
+    // স্টক কতটুকু আছে তা সুন্দর করে দেখানোর ফাংশন
+    function formatStock(qty, bpp, ppb) {
+        qty = parseFloat(qty) || 0;
+        let pkts = Math.floor(qty / bpp);
+        let boxes = Math.floor(qty % bpp);
+        let pcs = Math.round((qty % 1) * ppb);
+        
+        let parts = [];
+        if (pkts > 0) parts.push(`${pkts} Pkt`);
+        if (boxes > 0) parts.push(`${boxes} Box`);
+        if (pcs > 0) parts.push(`${pcs} Pc`);
+        return parts.join(" ") || "0 Stock";
+    }
+
+    // ডাটাবেস থেকে ডেটা আনা
     onValue(ref(db, 'inventory'), (snap) => {
-        allProducts = [];
+        inventory = [];
         snap.forEach(child => {
-            let p = child.val();
-            p.id = child.key;
-            allProducts.push(p);
+            inventory.push({ id: child.key, ...child.val() });
         });
-        filterAndRender();
+        render();
     });
 
-    function filterAndRender() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const maxStock = parseInt(stockFilter.value);
-        
-        const filtered = allProducts.filter(p => {
-            const matchesSearch = p.name.toLowerCase().includes(searchTerm) || 
-                                 (p.generic && p.generic.toLowerCase().includes(searchTerm));
-            const matchesStock = p.stock < maxStock;
+    function render() {
+        const grid = document.getElementById('stockList');
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const filter = document.getElementById('filterSelect').value;
+
+        const filtered = inventory.filter(p => {
+            // সার্চ লজিক (নাম, জেনেরিক বা র্যাক দিয়ে)
+            const matchesSearch = p.name?.toLowerCase().includes(search) || 
+                                 p.generic?.toLowerCase().includes(search) || 
+                                 p.rack?.toLowerCase().includes(search);
+
+            const currentPkts = p.stock / (p.boxesPerPacket || 1);
+            let matchesStock = currentPkts < 1.5; // ডিফল্টভাবে ১.৫ প্যাকেটের কম হলে দেখাবে
+
+            if (filter === "out") matchesStock = p.stock <= 0;
+            if (filter === "low") matchesStock = currentPkts < 1;
+
             return matchesSearch && matchesStock;
         });
-        renderList(filtered);
-    }
 
-    function renderList(data) {
-        listDiv.innerHTML = "";
-        itemCount.innerText = `${data.length} Items`;
+        grid.innerHTML = filtered.length ? "" : "<p style='grid-column:1/-1; text-align:center; padding:50px;'>No data found!</p>";
 
-        if (data.length === 0) {
-            listDiv.innerHTML = `<div class="no-data"><i class="fa-solid fa-check-circle" style="color:green"></i><p>Stock is healthy!</p></div>`;
-            return;
-        }
-
-        data.forEach(p => {
-            const isZero = p.stock == 0;
+        filtered.forEach(p => {
+            const isZero = p.stock <= 0;
             const card = document.createElement('div');
-            card.className = `stock-item ${p.stock < 5 ? 'critical' : ''}`;
+            card.className = `card ${isZero ? 'critical' : 'warning'}`;
             
+            // এখানে আপনার দেওয়া এন্ট্রি ফর্মের নামগুলোই ব্যবহার করা হয়েছে
             card.innerHTML = `
-                <div class="med-details">
-                    <span class="med-generic">${p.generic || 'No Generic'}</span>
-                    <h4>${p.name}</h4>
-                    <div class="info-row">
-                        <span class="tag tag-cat"><i class="fa-solid fa-tags"></i> ${p.category || 'N/A'}</span>
-                        <span class="tag tag-rack"><i class="fa-solid fa-location-dot"></i> Rack: ${p.rack || 'N/A'}</span>
-                        <span class="tag">EXP: ${p.expiry}</span>
+                <div class="generic">${p.generic || 'Generic N/A'}</div>
+                <div class="name">${p.name}</div>
+                
+                <div class="badges">
+                    <span class="badge b-cat"><i class="fa-solid fa-tag"></i> ${p.category || 'N/A'}</span>
+                    <span class="badge b-mfg"><i class="fa-solid fa-industry"></i> ${p.manufacturer || 'N/A'}</span>
+                </div>
+
+                <div class="info-box">
+                    <div>
+                        <span class="label">STOCK LEVEL</span>
+                        <div class="val" style="color:${isZero ? 'var(--danger)' : 'var(--warning)'}">
+                            ${isZero ? 'OUT OF STOCK' : formatStock(p.stock, p.boxesPerPacket, p.pcsPerBox)}
+                        </div>
+                    </div>
+                    <div style="text-align:right">
+                        <span class="label">PRICE / BOX</span>
+                        <div class="val" style="color:var(--primary)">৳ ${p.salePriceBox || 0}</div>
                     </div>
                 </div>
-                <div class="stock-status">
-                    <div class="qty-badge ${isZero ? 'out-of-stock' : 'very-low'}">
-                        ${isZero ? 'EMPTY' : p.stock + ' Pcs'}
-                    </div>
-                    <div style="font-size:10px; font-weight:bold; color:#777;">
-                        ${isZero ? 'ORDER NOW' : 'STOCK LOW'}
-                    </div>
+
+                <div class="footer">
+                    <span><i class="fa-solid fa-location-dot"></i> Rack: ${p.rack || 'N/A'}</span>
+                    <span style="color:${isZero ? 'var(--danger)' : 'inherit'}">
+                        <i class="fa-solid fa-calendar-xmark"></i> Exp: ${p.expiry || 'N/A'}
+                    </span>
                 </div>
             `;
-            listDiv.appendChild(card);
+            grid.appendChild(card);
         });
     }
 
-    searchInput.addEventListener('input', filterAndRender);
-    stockFilter.addEventListener('change', filterAndRender);
+    document.getElementById('searchInput').addEventListener('input', render);
+    document.getElementById('filterSelect').addEventListener('change', render);
 </script>
 
 </body>
