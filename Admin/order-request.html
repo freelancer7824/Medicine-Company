@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Onyx Pharma | Admin Advanced Control</title>
+    <title>Onyx Pharma | Admin Order Management</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -23,7 +23,6 @@
         .admin-container { max-width: 1200px; margin: 0 auto; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
         
-        /* --- Filters --- */
         .filter-box { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .filter-btn { padding: 10px 20px; border-radius: 50px; border: 1px solid #ddd; background: white; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; }
         .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
@@ -43,13 +42,13 @@
         .status-confirmed { background: #ecfdf5; color: #10b981; }
         .status-rejected { background: #fee2e2; color: #ef4444; }
 
-        .action-btn { padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; font-size: 11px; transition: 0.2s; color: white; }
+        .action-btn { padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; font-size: 11px; transition: 0.2s; color: white; margin-right: 5px; }
         .confirm-btn { background: var(--success); }
         .reject-btn { background: #64748b; }
         .delete-btn { background: #fee2e2; color: #ef4444; font-size: 14px; }
         .action-btn:hover { opacity: 0.8; transform: scale(1.05); }
 
-        .medicine-tag { background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-weight: 600; color: #475569; }
+        .medicine-tag { background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-weight: 600; color: #475569; display: inline-block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
@@ -58,9 +57,9 @@
         <header>
             <div>
                 <h2 style="color: var(--primary); font-weight: 800;">ONYX ADMIN PANEL</h2>
-                <p style="color: #777; font-size: 14px;">Inventory & Order Control</p>
+                <p style="color: #777; font-size: 14px;">Order Processing & Stock Control</p>
             </div>
-            <button onclick="location.reload()" class="filter-btn"><i class="fa fa-sync"></i> Refresh Data</button>
+            <button onclick="location.reload()" class="filter-btn"><i class="fa fa-sync"></i> Sync Orders</button>
         </header>
 
         <div class="stats">
@@ -126,7 +125,7 @@
             document.getElementById('pendingCount').innerText = pending;
             document.getElementById('confirmedCount').innerText = confirmed;
             document.getElementById('rejectedCount').innerText = rejected;
-            document.getElementById('totalEarn').innerText = earnings;
+            document.getElementById('totalEarn').innerText = earnings.toLocaleString();
 
             renderTable(allOrders);
         });
@@ -135,7 +134,8 @@
             const list = document.getElementById('orderList');
             list.innerHTML = orders.length ? "" : "<tr><td colspan='5' style='text-align:center; padding:40px;'>No orders found.</td></tr>";
 
-            orders.reverse().forEach(order => {
+            // Show latest orders first
+            [...orders].reverse().forEach(order => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>
@@ -145,7 +145,7 @@
                     </td>
                     <td>
                         <span class="medicine-tag">${order.itemName || 'Item'}</span><br>
-                        <small>Order Qty: <b>${order.quantity || 0} Pcs</b></small>
+                        <small>Quantity: <b>${order.quantity || 0} Boxes</b></small>
                     </td>
                     <td style="font-weight:800">৳ ${order.totalPrice || 0}</td>
                     <td><span class="status-pill status-${order.status || 'pending'}">${order.status || 'pending'}</span></td>
@@ -161,7 +161,7 @@
             });
         }
 
-        // Filter Function
+        // Filter Logic
         window.filterOrders = (type, btn) => {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -169,14 +169,13 @@
             else renderTable(allOrders.filter(o => o.status === type));
         };
 
-        // Confirm / Reject Logic with Stock Management
+        // Confirm / Reject with Automatic Stock Reduction
         window.processOrder = async (orderId, newStatus) => {
-            if(!confirm(`Are you sure you want to mark this as ${newStatus}?`)) return;
+            if(!confirm(`Are you sure you want to ${newStatus} this order?`)) return;
 
             const order = allOrders.find(o => o.id === orderId);
             
             if(newStatus === 'confirmed') {
-                // স্টক কমানোর লজিক
                 const inventoryRef = ref(db, 'inventory');
                 const invSnap = await get(inventoryRef);
                 
@@ -190,21 +189,26 @@
                     }
                 });
 
-                if(foundItemKey && currentStock >= order.quantity) {
-                    const newStock = currentStock - order.quantity;
-                    await update(ref(db, `inventory/${foundItemKey}`), { stock: newStock });
+                if(foundItemKey) {
+                    if(parseInt(currentStock) >= parseInt(order.quantity)) {
+                        const newStock = parseInt(currentStock) - parseInt(order.quantity);
+                        await update(ref(db, `inventory/${foundItemKey}`), { stock: newStock });
+                    } else {
+                        alert("Error: Not enough stock in inventory!");
+                        return;
+                    }
                 } else {
-                    alert("Error: Stock not found or insufficient!");
+                    alert("Error: Medicine not found in inventory!");
                     return;
                 }
             }
 
             await update(ref(db, `orders/${orderId}`), { status: newStatus });
-            alert(`Order ${newStatus} Successfully!`);
+            alert(`Order ${newStatus} successfully! Stock updated.`);
         };
 
         window.deleteItem = (id) => {
-            if(confirm("Permanently delete this order?")) remove(ref(db, `orders/${id}`));
+            if(confirm("Permanently delete this order record?")) remove(ref(db, `orders/${id}`));
         };
 
     </script>
