@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         :root {
-            /* মেইন সাইটের থিম কালার */
             --primary: #f85606;
             --bg-body: #eff0f5;
             --nav-white: #ffffff;
@@ -40,8 +39,17 @@
         
         .scroll-menu { display: flex; align-items: center; overflow-x: auto; flex: 1; white-space: nowrap; scrollbar-width: none; gap: 8px; }
         .scroll-menu::-webkit-scrollbar { display: none; }
-        .quick-link { color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 8px 15px; border-radius: 6px; background: #ffffff; border: 1px solid var(--border); transition: 0.2s; display: flex; align-items: center; gap: 8px; font-weight: 500; }
+        .quick-link { position: relative; color: var(--text-dim); text-decoration: none; font-size: 13px; padding: 8px 15px; border-radius: 6px; background: #ffffff; border: 1px solid var(--border); transition: 0.2s; display: flex; align-items: center; gap: 8px; font-weight: 500; }
         .quick-link:hover { color: var(--primary); border-color: var(--primary); background: var(--hover-item); }
+
+        /* --- Notification Red Dot --- */
+        .dot { display: none; position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; border: 1px solid white; }
+
+        /* --- Alert Popup Style --- */
+        #alertPopup { display: none; position: fixed; top: 70px; right: 20px; width: 300px; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 1px solid var(--border); z-index: 2000; padding: 15px; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .popup-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: var(--danger); font-weight: 800; font-size: 14px; }
+        .popup-item { font-size: 12px; color: var(--text-main); margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
 
         /* --- Main Wrapper --- */
         .main-wrapper { display: flex; flex: 1; overflow: hidden; position: relative; }
@@ -76,6 +84,14 @@
 </head>
 <body oncontextmenu="return false;">
 
+    <div id="alertPopup">
+        <div class="popup-header">
+            <span><i class="fa-solid fa-bell"></i> System Alert</span>
+            <i class="fa-solid fa-xmark" style="cursor:pointer" onclick="this.parentElement.parentElement.style.display='none'"></i>
+        </div>
+        <div id="popupContent"></div>
+    </div>
+
     <header class="top-nav">
         <div class="logo"><i class="fa-solid fa-house-medical"></i> ONYX<span>PHARMA</span></div>
         <div class="nav-right">
@@ -91,8 +107,14 @@
         <div class="scroll-menu">
             <a href="pos.html" target="mainFrame" class="quick-link" onclick="startLoad()"><i class="fa-solid fa-cash-register"></i> Billing POS</a>
             <a href="stock.html" target="mainFrame" class="quick-link" onclick="startLoad()"><i class="fa-solid fa-boxes-stacked"></i> Live Stock</a>
-            <a href="expiry-alert.html" target="mainFrame" class="quick-link" onclick="startLoad()"><i class="fa-solid fa-clock"></i> Expiry Alert</a>
-            <a href="low-stock.html" target="mainFrame" class="quick-link" onclick="startLoad()"><i class="fa-solid fa-triangle-exclamation"></i> Low Stock</a>
+            <a href="expiry-alert.html" target="mainFrame" class="quick-link" onclick="startLoad()">
+                <i class="fa-solid fa-clock"></i> Expiry Alert
+                <span id="expDot" class="dot"></span>
+            </a>
+            <a href="low-stock.html" target="mainFrame" class="quick-link" onclick="startLoad()">
+                <i class="fa-solid fa-triangle-exclamation"></i> Low Stock
+                <span id="lowDot" class="dot"></span>
+            </a>
             <a href="today-sell.html" target="mainFrame" class="quick-link" onclick="startLoad()"><i class="fa-solid fa-file-invoice-dollar"></i> Today's Sale</a>
         </div>
     </nav>
@@ -109,11 +131,11 @@
                 <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
             </button>
             <div class="dropdown-box">
-                <a href="edit-medicine.html" target="mainFrame">All Medicines</a>
-                <a href="new-medicine.html" target="mainFrame">Add New Medicine</a>
-                <a href="generic-setup.html" target="mainFrame">Generic Setup</a>
-                <a href="category.html" target="mainFrame">Category/Manufacturer</a>
-                <a href="rack-setup.html" target="mainFrame">Rack/Storage Setup</a>
+                <a href="edit-medicine.html" target="mainFrame" onclick="startLoad()">All Medicines</a>
+                <a href="new-medicine.html" target="mainFrame" onclick="startLoad()">Add New Medicine</a>
+                <a href="generic-setup.html" target="mainFrame" onclick="startLoad()">Generic Setup</a>
+                <a href="category.html" target="mainFrame" onclick="startLoad()">Category/Manufacturer</a>
+                <a href="rack-setup.html" target="mainFrame" onclick="startLoad()">Rack/Storage Setup</a>
             </div>
 
             <div class="side-label">Sales & Customer</div>
@@ -122,10 +144,10 @@
                 <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
             </button>
             <div class="dropdown-box">
-                <a href="pos.html" target="mainFrame">Counter Sale (POS)</a>
-                <a href="invoice-list.html" target="mainFrame">Invoice List</a>
-                <a href="sales-return.html" target="mainFrame">Sales Return</a>
-                <a href="credit-record.html" target="mainFrame">Due Payments</a>
+                <a href="pos.html" target="mainFrame" onclick="startLoad()">Counter Sale (POS)</a>
+                <a href="invoice-list.html" target="mainFrame" onclick="startLoad()">Invoice List</a>
+                <a href="sales-return.html" target="mainFrame" onclick="startLoad()">Sales Return</a>
+                <a href="credit-record.html" target="mainFrame" onclick="startLoad()">Due Payments</a>
             </div>
 
             <button class="side-item" onclick="toggleDrop(this)">
@@ -133,8 +155,8 @@
                 <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
             </button>
             <div class="dropdown-box">
-                <a href="all-customer.html" target="mainFrame">Customer List</a>
-                <a href="credit-record.html" target="mainFrame">Credit Records</a>
+                <a href="all-customer.html" target="mainFrame" onclick="startLoad()">Customer List</a>
+                <a href="credit-record.html" target="mainFrame" onclick="startLoad()">Credit Records</a>
             </div>
 
             <div class="side-label">Purchase & Suppliers</div>
@@ -143,10 +165,10 @@
                 <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
             </button>
             <div class="dropdown-box">
-                <a href="suplier-list.html" target="mainFrame">Supplier List</a>
-                <a href="purchase.html" target="mainFrame">Purchase Order</a>
-                <a href="purchase-history.html" target="mainFrame">Purchase History</a>
-                <a href="supplier-ledger.html" target="mainFrame">Supplier Ledger</a>
+                <a href="suplier-list.html" target="mainFrame" onclick="startLoad()">Supplier List</a>
+                <a href="purchase.html" target="mainFrame" onclick="startLoad()">Purchase Order</a>
+                <a href="purchase-history.html" target="mainFrame" onclick="startLoad()">Purchase History</a>
+                <a href="supplier-ledger.html" target="mainFrame" onclick="startLoad()">Supplier Ledger</a>
             </div>
 
             <div class="side-label">Accounts & HR</div>
@@ -159,10 +181,10 @@
                 <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
             </button>
             <div class="dropdown-box">
-                <a href="#" target="mainFrame">Profit/Loss Report</a>
-                <a href="#" target="mainFrame">Daily Sales Log</a>
-                <a href="#" target="mainFrame">Stock Value Report</a>
-                <a href="#" target="mainFrame">Vat/Tax Summary</a>
+                <a href="#" target="mainFrame" onclick="startLoad()">Profit/Loss Report</a>
+                <a href="#" target="mainFrame" onclick="startLoad()">Daily Sales Log</a>
+                <a href="#" target="mainFrame" onclick="startLoad()">Stock Value Report</a>
+                <a href="#" target="mainFrame" onclick="startLoad()">Vat/Tax Summary</a>
             </div>
 
             <div class="side-label">Configuration</div>
@@ -185,6 +207,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
@@ -199,13 +222,48 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getDatabase(app);
 
+        // --- Auth Monitoring & Login Redirect ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 document.getElementById('userName').innerText = user.displayName || "Admin User";
                 if(user.photoURL) document.getElementById('userImg').src = user.photoURL;
             } else {
-                document.getElementById('userName').innerText = "Guest Admin";
+                // Redirect to login.html if not logged in
+                window.location.href = "login.html";
+            }
+        });
+
+        // --- Notification Logic ---
+        onValue(ref(db, 'inventory'), (snap) => {
+            let lowStockCount = 0;
+            let expiredCount = 0;
+            const today = new Date();
+            const next30Days = new Date();
+            next30Days.setDate(today.getDate() + 30);
+
+            snap.forEach(child => {
+                const item = child.val();
+                if (item.stock / (item.boxesPerPacket || 1) < 1) lowStockCount++;
+                if (item.expiry) {
+                    const exp = new Date(item.expiry);
+                    if (exp <= next30Days) expiredCount++;
+                }
+            });
+
+            document.getElementById('expDot').style.display = expiredCount > 0 ? 'block' : 'none';
+            document.getElementById('lowDot').style.display = lowStockCount > 0 ? 'block' : 'none';
+
+            if (lowStockCount > 0 || expiredCount > 0) {
+                const popup = document.getElementById('alertPopup');
+                const content = document.getElementById('popupContent');
+                content.innerHTML = `
+                    <div class="popup-item"><i class="fa-solid fa-triangle-exclamation" style="color:var(--warning)"></i> ${lowStockCount} medicines are low in stock.</div>
+                    <div class="popup-item"><i class="fa-solid fa-calendar-xmark" style="color:var(--danger)"></i> ${expiredCount} medicines expiring soon/expired.</div>
+                    <button onclick="document.getElementById('alertPopup').style.display='none'" style="margin-top:10px; width:100%; padding:8px; border:none; background:var(--primary); color:white; border-radius:6px; font-weight:700; cursor:pointer">OK, Got it</button>
+                `;
+                popup.style.display = 'block';
             }
         });
 
@@ -225,6 +283,13 @@
             document.getElementById('sidebar').classList.toggle('active'); 
         }
 
+        // Forced Sidebar Hide for Mobile
+        function hideSidebarForce() {
+            if (window.innerWidth <= 850) {
+                document.getElementById('sidebar').classList.remove('active');
+            }
+        }
+
         function toggleDrop(btn) {
             let box = btn.nextElementSibling;
             box.style.display = (box.style.display === "block") ? "none" : "block";
@@ -234,7 +299,8 @@
         function startLoad() {
             document.getElementById('loader').style.display = 'block';
             document.getElementById('mainFrame').style.opacity = '0.3';
-            if (window.innerWidth <= 850) toggleSidebar();
+            // লিঙ্ক ক্লিক করলে সাইডবার বন্ধ হবে (Mobile)
+            hideSidebarForce();
         }
 
         function stopLoad() {
