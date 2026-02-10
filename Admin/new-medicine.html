@@ -22,16 +22,9 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: var(--bg); color: var(--text-main); padding: 15px; line-height: 1.6; }
 
-        .container { max-width: 900px; margin: 0 auto; }
+        .container { max-width: 1000px; margin: 0 auto; }
 
-        .nav-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding: 10px 5px;
-        }
-        
+        .nav-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .logo-area h2 { color: var(--text-main); font-size: 24px; font-weight: 800; }
         .logo-area span { color: var(--primary); }
 
@@ -39,67 +32,51 @@
             background: #fff; border: 1px solid var(--border); color: var(--text-main); 
             padding: 10px 20px; border-radius: 12px; text-decoration: none; 
             font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px;
-            transition: 0.2s;
         }
-        .back-btn:hover { background: #f8fafc; border-color: var(--primary); color: var(--primary); }
 
         .form-wrapper {
-            background: var(--card);
-            border-radius: 24px;
-            padding: 35px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.03), 0 1px 3px rgba(0,0,0,0.05);
-            border: 1px solid var(--border);
+            background: var(--card); border-radius: 24px; padding: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid var(--border);
         }
 
-        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
-        .full-width { grid-column: span 2; }
+        .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .full-width { grid-column: span 3; }
+        .double-width { grid-column: span 2; }
 
         .form-group { display: flex; flex-direction: column; gap: 8px; }
-        label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+        label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
         
         input, select { 
-            background: #fff; border: 2px solid #edf2f7; padding: 14px; 
-            border-radius: 14px; outline: none; font-size: 15px; font-weight: 600; 
+            background: #fbfcfd; border: 2px solid #edf2f7; padding: 12px; 
+            border-radius: 12px; outline: none; font-size: 14px; font-weight: 600; 
             transition: all 0.3s; color: var(--text-main);
         }
-        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(248, 86, 6, 0.1); }
+        input:focus, select:focus { border-color: var(--primary); background: #fff; }
 
-        .input-box-row { display: flex; gap: 10px; }
-        .quick-btn { 
-            background: #fff; color: var(--primary); width: 50px; border-radius: 14px; 
-            display: flex; align-items: center; justify-content: center; 
-            border: 2px solid #edf2f7; transition: 0.2s;
-        }
-        .quick-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
-
-        .preview-card { 
-            background: #f8fafc; padding: 20px; border-radius: 18px; 
-            margin-top: 10px; border-left: 5px solid var(--accent);
-        }
-        .preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; text-align: center; }
-        .preview-item span { display: block; font-size: 11px; color: var(--text-dim); font-weight: 700; }
-        .preview-item b { font-size: 16px; color: var(--accent); }
+        .preview-card { background: #f8fafc; padding: 25px; border-radius: 20px; margin-top: 10px; border: 1px dashed var(--border); }
+        .preview-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; text-align: center; }
+        .preview-item { background: #fff; padding: 10px; border-radius: 12px; border: 1px solid #eee; }
+        .preview-item span { display: block; font-size: 9px; color: var(--text-dim); font-weight: 800; margin-bottom: 2px; }
+        .preview-item b { font-size: 14px; color: var(--text-main); }
 
         .save-btn {
             width: 100%; background: var(--primary); color: #fff; border: none; padding: 18px; 
             border-radius: 18px; font-weight: 800; font-size: 16px; cursor: pointer; 
             margin-top: 15px; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;
         }
-        .save-btn:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(248, 86, 6, 0.3); }
 
-        #toast { 
-            position: fixed; top: 30px; right: 30px; background: #1a1a1a; color: white; 
-            padding: 16px 25px; border-radius: 15px; display: none; font-weight: 600; 
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2); z-index: 1000; animation: slideIn 0.3s ease;
+        #toast { position: fixed; top: 30px; right: 30px; background: #1a1a1a; color: white; padding: 16px 25px; border-radius: 15px; display: none; z-index: 1000; }
+
+        @media (max-width: 850px) {
+            .form-grid { grid-template-columns: repeat(2, 1fr); }
+            .full-width, .double-width { grid-column: span 2; }
+            .preview-grid { grid-template-columns: repeat(3, 1fr); }
         }
 
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-
-        @media (max-width: 600px) {
+        @media (max-width: 500px) {
             .form-grid { grid-template-columns: 1fr; }
-            .full-width { grid-column: span 1; }
-            .form-wrapper { padding: 20px; }
-            .preview-grid { grid-template-columns: 1fr; gap: 10px; text-align: left; }
+            .full-width, .double-width { grid-column: span 1; }
+            .preview-grid { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -108,41 +85,50 @@
     <div class="container">
         <div class="nav-header">
             <div class="logo-area"><h2>Onyx <span>Pharma</span></h2></div>
-            <a href="inventory.html" class="back-btn"><i class="fa-solid fa-list"></i> Inventory</a>
+            <a href="inventory.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Inventory</a>
         </div>
 
         <div class="form-wrapper">
             <form id="medForm">
                 <div class="form-grid">
-                    <div class="form-group full-width">
+                    <div class="form-group double-width">
                         <label>Medicine Name</label>
-                        <input type="text" id="name" required placeholder="Napa Extend 665mg">
+                        <input type="text" id="name" required placeholder="e.g. Napa Extend 665mg">
                     </div>
 
                     <div class="form-group">
-                        <label>Generic Name</label>
-                        <div class="input-box-row">
-                            <select id="generic" required><option value="">Loading...</option></select>
-                            <a href="generic-setup.html" class="quick-btn"><i class="fa-solid fa-plus"></i></a>
-                        </div>
+                        <label>Manufacturer (Company)</label>
+                        <select id="manufacturer" required><option value="">Loading...</option></select>
                     </div>
 
                     <div class="form-group">
                         <label>Category</label>
-                        <div class="input-box-row">
-                            <select id="category" required><option value="">Loading...</option></select>
-                            <a href="category.html" class="quick-btn"><i class="fa-solid fa-plus"></i></a>
-                        </div>
+                        <select id="category" required><option value="">Loading...</option></select>
                     </div>
 
                     <div class="form-group">
-                        <label>Total Boxes</label>
-                        <input type="number" id="boxQty" required placeholder="0">
+                        <label>Generic Name</label>
+                        <select id="generic" required><option value="">Loading...</option></select>
                     </div>
 
                     <div class="form-group">
-                        <label>Pcs Per Box</label>
-                        <input type="number" id="pcsPerBox" required placeholder="e.g. 10">
+                        <label>Rack / Location</label>
+                        <select id="rack" required><option value="">Loading...</option></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Total Packets</label>
+                        <input type="number" id="packetQty" required placeholder="5">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Boxes per Packet</label>
+                        <input type="number" id="boxesPerPacket" required placeholder="10">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Pcs per Box</label>
+                        <input type="number" id="pcsPerBox" required placeholder="12">
                     </div>
 
                     <div class="form-group">
@@ -156,11 +142,6 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Rack / Location</label>
-                        <select id="rack" required><option value="">Loading...</option></select>
-                    </div>
-
-                    <div class="form-group">
                         <label>Expiry Date</label>
                         <input type="month" id="expiry" required>
                     </div>
@@ -168,18 +149,11 @@
                     <div class="full-width">
                         <div class="preview-card">
                             <div class="preview-grid">
-                                <div class="preview-item">
-                                    <span>UNIT BUY PRICE</span>
-                                    <b id="unitBuy">৳ 0.00</b>
-                                </div>
-                                <div class="preview-item">
-                                    <span>UNIT SALE PRICE</span>
-                                    <b id="unitSale">৳ 0.00</b>
-                                </div>
-                                <div class="preview-item">
-                                    <span>EST. PROFIT (BOX)</span>
-                                    <b id="profitBox" style="color: var(--success);">৳ 0.00</b>
-                                </div>
+                                <div class="preview-item"><span>T. BOXES</span><b id="totalBoxesDisplay">0</b></div>
+                                <div class="preview-item"><span>T. PCS</span><b id="totalPcs">0</b></div>
+                                <div class="preview-item"><span>UNIT SALE</span><b id="unitSale">৳ 0.00</b></div>
+                                <div class="preview-item"><span>INVEST</span><b id="totalInvest">৳ 0.00</b></div>
+                                <div class="preview-item"><span>PROFIT/B</span><b id="profitBox" style="color: var(--success);">৳ 0.00</b></div>
                             </div>
                         </div>
                     </div>
@@ -194,14 +168,13 @@
         </div>
     </div>
 
-    <div id="toast"><i class="fa-solid fa-circle-check" style="color: var(--success);"></i> &nbsp; Medicine Saved Successfully!</div>
+    <div id="toast">Medicine Saved Successfully!</div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyD1mn9MR9hyZ36Ce1lnGyJYmL6AHopScTA",
             databaseURL: "https://social-media-5e6c8-default-rtdb.firebaseio.com",
             projectId: "social-media-5e6c8",
         };
@@ -209,11 +182,11 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Utility to load select options
-        function loadOptions(path, elementId, label) {
+        // --- Logic: Load Dropdowns From Firebase ---
+        function fillDropdown(path, elementId, placeholder) {
             onValue(ref(db, path), (snap) => {
                 const el = document.getElementById(elementId);
-                el.innerHTML = `<option value="">Select ${label}</option>`;
+                el.innerHTML = `<option value="">Select ${placeholder}</option>`;
                 snap.forEach(child => {
                     let opt = document.createElement('option');
                     opt.value = child.val().name;
@@ -223,72 +196,69 @@
             });
         }
 
-        loadOptions('generics', 'generic', 'Generic');
-        loadOptions('categories', 'category', 'Category');
-        loadOptions('racks', 'rack', 'Rack');
+        // Setup পেজের সাথে মিল রেখে পাথগুলো লোড করা
+        fillDropdown('categories', 'category', 'Category');
+        fillDropdown('manufacturers', 'manufacturer', 'Manufacturer');
+        fillDropdown('generics', 'generic', 'Generic');
+        fillDropdown('racks', 'rack', 'Rack');
 
-        // Calculation Logic
+        // --- Logic: Advanced Calculation ---
         const calculate = () => {
-            const pcs = parseFloat(document.getElementById('pcsPerBox').value) || 0;
+            const packets = parseFloat(document.getElementById('packetQty').value) || 0;
+            const boxesPerPack = parseFloat(document.getElementById('boxesPerPacket').value) || 0;
+            const pcsPerBox = parseFloat(document.getElementById('pcsPerBox').value) || 0;
             const bBox = parseFloat(document.getElementById('buyPriceBox').value) || 0;
             const sBox = parseFloat(document.getElementById('salePriceBox').value) || 0;
 
-            if(pcs > 0) {
-                const bPc = (bBox / pcs).toFixed(2);
-                const sPc = (sBox / pcs).toFixed(2);
-                const profit = (sBox - bBox).toFixed(2);
+            const totalBoxes = packets * boxesPerPack;
+            const totalPieces = totalBoxes * pcsPerBox;
+            const totalInvestment = totalBoxes * bBox;
+            const unitSalePrice = pcsPerBox > 0 ? (sBox / pcsPerBox).toFixed(2) : 0;
+            const profit = (sBox - bBox).toFixed(2);
 
-                document.getElementById('unitBuy').innerText = `৳ ${bPc}`;
-                document.getElementById('unitSale').innerText = `৳ ${sPc}`;
-                document.getElementById('profitBox').innerText = `৳ ${profit}`;
-            }
+            document.getElementById('totalBoxesDisplay').innerText = totalBoxes;
+            document.getElementById('totalPcs').innerText = totalPieces;
+            document.getElementById('unitSale').innerText = `৳ ${unitSalePrice}`;
+            document.getElementById('totalInvest').innerText = `৳ ${totalInvestment.toFixed(2)}`;
+            document.getElementById('profitBox').innerText = `৳ ${profit}`;
         };
 
-        ['pcsPerBox', 'buyPriceBox', 'salePriceBox'].forEach(id => {
+        ['packetQty', 'boxesPerPacket', 'pcsPerBox', 'buyPriceBox', 'salePriceBox'].forEach(id => {
             document.getElementById(id).addEventListener('input', calculate);
         });
 
-        // Form Submit
+        // --- Logic: Save Data ---
         document.getElementById('medForm').onsubmit = async (e) => {
             e.preventDefault();
             
-            const bPrice = parseFloat(document.getElementById('buyPriceBox').value);
-            const sPrice = parseFloat(document.getElementById('salePriceBox').value);
-            const boxes = parseFloat(document.getElementById('boxQty').value);
-            const pcsPerBox = parseFloat(document.getElementById('pcsPerBox').value);
+            const totalBoxes = parseFloat(document.getElementById('totalBoxesDisplay').innerText);
 
             const data = {
                 name: document.getElementById('name').value,
-                generic: document.getElementById('generic').value,
+                manufacturer: document.getElementById('manufacturer').value,
                 category: document.getElementById('category').value,
+                generic: document.getElementById('generic').value,
                 rack: document.getElementById('rack').value,
-                stock: boxes,
-                pcsPerBox: pcsPerBox,
-                buyPrice: bPrice, // Corrected: saving box buy price
-                price: sPrice,    // Sale price for POS
-                unitBuyPrice: (bPrice / pcsPerBox).toFixed(2),
-                unitSalePrice: (sPrice / pcsPerBox).toFixed(2),
+                stock: totalBoxes,
+                boxesPerPacket: parseFloat(document.getElementById('boxesPerPacket').value),
+                pcsPerBox: parseFloat(document.getElementById('pcsPerBox').value),
+                buyPriceBox: parseFloat(document.getElementById('buyPriceBox').value),
+                salePriceBox: parseFloat(document.getElementById('salePriceBox').value),
                 expiry: document.getElementById('expiry').value,
                 timestamp: Date.now()
             };
 
             try {
                 await push(ref(db, 'inventory'), data);
-                showToast();
+                const t = document.getElementById('toast');
+                t.style.display = 'block';
+                setTimeout(() => t.style.display = 'none', 3000);
                 document.getElementById('medForm').reset();
-                document.getElementById('unitBuy').innerText = "৳ 0.00";
-                document.getElementById('unitSale').innerText = "৳ 0.00";
-                document.getElementById('profitBox').innerText = "৳ 0.00";
+                calculate();
             } catch (err) {
-                alert("Error saving: " + err.message);
+                alert("Error: " + err.message);
             }
         };
-
-        function showToast() {
-            const t = document.getElementById('toast');
-            t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 3000);
-        }
     </script>
 </body>
 </html>
